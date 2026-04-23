@@ -17,8 +17,8 @@ public class OrderItem {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "count")
-    private int count;
+    @Column(name = "quantity")
+    private int quantity;
 
     @Column(name = "price")
     private double price;
