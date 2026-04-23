@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-const NavBar = () => {
+const Header = () => {
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -169,4 +169,4 @@ const NavBar = () => {
   );
 };
 
-export default NavBar;
+export default Header;
