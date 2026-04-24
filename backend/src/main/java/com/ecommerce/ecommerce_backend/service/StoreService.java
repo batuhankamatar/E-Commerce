@@ -8,6 +8,7 @@ public interface StoreService {
     List<StoreResponse> findAll();
     StoreResponse findById(Long id);
     Store findEntityById(Long id);
+    StoreResponse save(Long userId, Store store);
     StoreResponse update(Long id, Store storeDetails);
     void delete(Long id);
 }

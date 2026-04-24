@@ -2,6 +2,7 @@ package com.ecommerce.ecommerce_backend.service;
 
 import com.ecommerce.ecommerce_backend.dto.StoreResponse;
 import com.ecommerce.ecommerce_backend.entity.Store;
+import com.ecommerce.ecommerce_backend.entity.User;
 import com.ecommerce.ecommerce_backend.exception.StoreException;
 import com.ecommerce.ecommerce_backend.repository.StoreRepository;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,18 @@ import java.util.stream.Collectors;
 public class StoreServiceImpl implements StoreService {
 
     private final StoreRepository storeRepository;
+    private final UserService userService;
+
+    @Override
+    public StoreResponse save(Long userId, Store store) {
+        User user = userService.findEntityById(userId);
+
+        store.setUser(user);
+
+        Store savedStore = storeRepository.save(store);
+
+        return convertToResponse(savedStore);
+    }
 
     @Override
     public List<StoreResponse> findAll() {
