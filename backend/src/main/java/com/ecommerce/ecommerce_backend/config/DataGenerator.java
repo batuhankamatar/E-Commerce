@@ -19,22 +19,34 @@ public class DataGenerator implements CommandLineRunner {
 
             Category clothing = new Category();
             clothing.setCode("CLOTHING");
-            clothing.setTitle("Giyim");
+            clothing.setTitle("Clothing");
             clothing.setGender(Gender.FEMALE);
-            clothing.setRating(4.5);
             categoryRepository.save(clothing);
 
             Category grocery = new Category();
             grocery.setCode("GROCERY");
-            grocery.setTitle("Market");
-            grocery.setRating(4.8);
+            grocery.setTitle("Grocery");
             categoryRepository.save(grocery);
 
             Category tech = new Category();
             tech.setCode("TECH");
-            tech.setTitle("Teknoloji");
-            tech.setRating(4.9);
+            tech.setTitle("Technology");
             categoryRepository.save(tech);
+
+            Category furniture = new Category();
+            furniture.setCode("FURNITURE");
+            furniture.setTitle("Furniture");
+            categoryRepository.save(furniture);
+
+            Category decoration = new Category();
+            decoration.setCode("DECORATION");
+            decoration.setTitle("Decoration");
+            categoryRepository.save(decoration);
+
+            Category homeOffice = new Category();
+            homeOffice.setCode("HOME_OFFICE");
+            homeOffice.setTitle("Home & Office");
+            categoryRepository.save(homeOffice);
 
             System.out.println("Başlangıç kategorileri başarıyla yüklendi!");
         }

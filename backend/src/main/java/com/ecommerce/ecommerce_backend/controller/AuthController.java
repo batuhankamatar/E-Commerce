@@ -4,6 +4,7 @@ import com.ecommerce.ecommerce_backend.dto.LoginRequest;
 import com.ecommerce.ecommerce_backend.dto.RegisterRequest;
 import com.ecommerce.ecommerce_backend.dto.UserResponse;
 import com.ecommerce.ecommerce_backend.entity.User;
+import com.ecommerce.ecommerce_backend.security.TokenService;
 import com.ecommerce.ecommerce_backend.service.AuthService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,13 +18,17 @@ import java.util.stream.Collectors;
 public class AuthController {
 
     private final AuthService authService;
+    private final TokenService tokenService;
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse register(@RequestBody RegisterRequest registerRequest) {
         User user = authService.register(registerRequest);
+        String token = tokenService.generateToken(user);
 
-        return convertToResponse(user);
+        UserResponse response = convertToResponse(user);
+        response.setToken(token);
+        return response;
     }
 
     private UserResponse convertToResponse(User user) {

@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../store/authReducer";
+import { getCategories } from "../api/categoryService";
 import {
   User,
   Search,
@@ -10,12 +13,23 @@ import {
   ChevronUp,
   AlignRight,
 } from "lucide-react";
-import { useState } from "react";
 
 const Header = () => {
+  const dispatch = useDispatch();
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Redux'tan giriş durumunu alıyoruz
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    getCategories()
+      .then((data) => {
+        setCategories(data);
+      })
+      .catch((err) => console.error("Kategoriler yüklenemedi:", err));
+  }, []);
 
   return (
     <header className="flex flex-wrap items-center justify-between lg:flex-nowrap lg:h-[91px]">
@@ -35,14 +49,15 @@ const Header = () => {
           <div className="desktop-auth hidden lg:flex items-center gap-1">
             {isLoggedIn ? (
               <button
-                onClick={() => setIsLoggedIn(false)}
+                onClick={() => dispatch(logout())}
                 className="text-[#23A6F0] font-bold text-sm"
               >
                 Logout
               </button>
             ) : (
+              /* Tıklanınca Login ve Register seçeneklerini barındıran sayfaya gidecek */
               <Link
-                to="/login"
+                to="/signup"
                 className="text-[#23A6F0] font-bold text-[14px] leading-[24px] tracking-[0.2px] whitespace-nowrap flex items-center gap-[5px] hover:text-[#1a7bb3] transition-all"
               >
                 <User size={16} strokeWidth={2.5} />
@@ -102,31 +117,20 @@ const Header = () => {
 
             {isShopOpen && (
               <ul className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl p-4 z-[999] flex flex-col gap-3 min-w-[120px] list-none">
-                <li className="text-center">
-                  {" "}
-                  <Link
-                    to="/shop/men"
-                    className="hover:text-[#23A6F0] block whitespace-nowrap"
-                  >
-                    Men
-                  </Link>
-                </li>
-                <li className="text-center">
-                  <Link
-                    to="/shop/women"
-                    className="hover:text-[#23A6F0] block whitespace-nowrap"
-                  >
-                    Women
-                  </Link>
-                </li>
-                <li className="text-center">
-                  <Link
-                    to="/shop/kids"
-                    className="hover:text-[#23A6F0] block whitespace-nowrap"
-                  >
-                    Kids
-                  </Link>
-                </li>
+                {categories.map((category) => (
+                  <li key={category.id} className="text-center">
+                    <Link
+                      to={`/shop/${category.code.toLowerCase()}`}
+                      className="hover:text-[#23A6F0] block whitespace-nowrap"
+                      onClick={() => setIsShopOpen(false)}
+                    >
+                      {category.title}
+                    </Link>
+                  </li>
+                ))}
+                {categories.length === 0 && (
+                  <li className="text-gray-400 text-xs">Loading...</li>
+                )}
               </ul>
             )}
           </li>

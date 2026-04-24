@@ -47,7 +47,6 @@ public class CategoryServiceImpl implements CategoryService {
         existingCategory.setTitle(categoryDetails.getTitle());
         existingCategory.setCode(categoryDetails.getCode());
         existingCategory.setImg(categoryDetails.getImg());
-        existingCategory.setRating(categoryDetails.getRating());
         existingCategory.setGender(categoryDetails.getGender());
 
         return convertToResponse(categoryRepository.save(existingCategory));
@@ -65,7 +64,7 @@ public class CategoryServiceImpl implements CategoryService {
                 category.getCode(),
                 category.getTitle(),
                 category.getImg(),
-                category.getRating(),
+                category.calculateAverageRating(),
                 category.getGender(),
                 category.getProducts() != null ? category.getProducts().size() : 0
         );

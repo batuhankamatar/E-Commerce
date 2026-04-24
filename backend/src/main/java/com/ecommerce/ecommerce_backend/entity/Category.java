@@ -51,4 +51,14 @@ public class Category {
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private List<Product> products;
+
+    public double calculateAverageRating() {
+        if (products == null || products.isEmpty()) {
+            return 0.0;
+        }
+        return products.stream()
+                .mapToDouble(Product::getRating)
+                .average()
+                .orElse(0.0);
+    }
 }

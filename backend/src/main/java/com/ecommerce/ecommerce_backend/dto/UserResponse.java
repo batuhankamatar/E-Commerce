@@ -20,4 +20,5 @@ public class UserResponse {
     private LocalDate birthDate;
     private List<String> roles;
     private String storeName;
+    private String token;
 }

@@ -23,7 +23,7 @@ public class Role implements GrantedAuthority {
 
     @NotBlank(message = "Rol adı boş olamaz")
     @Size(max = 50, message = "Rol adı en fazla 50 karakter olabilir")
-    @Column(name = "name", unique = true)
+    @Column(name = "authority", unique = true)
     private String authority;
 
     @Override

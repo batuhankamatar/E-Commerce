@@ -30,7 +30,6 @@ public class CategoryController {
         return categoryService.save(category);
     }
 
-    // İleride lazım olacak yönetim uçları
     @PutMapping("/{id}")
     public CategoryResponse update(@PathVariable Long id, @RequestBody Category category) {
         return categoryService.update(id, category);

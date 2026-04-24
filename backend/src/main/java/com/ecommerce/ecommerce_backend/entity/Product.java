@@ -39,6 +39,9 @@ public class Product {
     @Column(name = "price")
     private Double price;
 
+    @Column(name = "rating")
+    private Double rating = 0.0;
+
     @NotNull(message = "Ürün adeti boş olamaz.")
     @Min(value = 0, message = "Stok 0'dan az olamaz")
     @Column(name = "stock")
@@ -62,4 +65,5 @@ public class Product {
 
     @ManyToMany(mappedBy = "favoriteProducts")
     private Set<User> favoritedByUsers = new HashSet<>();
+
 }
