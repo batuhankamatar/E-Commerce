@@ -48,7 +48,7 @@ public class TokenService {
                 .issuer("self")
                 .issuedAt(now)
                 .expiresAt(now.plus(24, ChronoUnit.HOURS))
-                .subject(user.getEmail()) 
+                .subject(user.getEmail())
                 .claim("roles", scope)
                 .build();
 

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const SignupForm = () => {
   const [role, setRole] = useState("customer");
@@ -41,11 +42,18 @@ const SignupForm = () => {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
       console.log("Kayıt ve Giriş Başarılı:", response.data);
-      alert(`Welcome ${name} ${surname}! Your account has been created.`);
+
+      toast.success(
+        `Welcome ${name} ${surname}! Your account has been created.`,
+      );
+
       navigate("/profile");
     } catch (error) {
       console.error("Kayıt sırasında hata oluştu:", error.response?.data);
-      alert(error.response?.data?.message || "Registration failed.");
+
+      const errorMessage =
+        error.response?.data?.message || "Registration failed.";
+      toast.error(errorMessage);
     }
   };
 

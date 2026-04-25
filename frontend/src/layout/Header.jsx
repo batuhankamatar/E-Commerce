@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../store/authReducer";
+import { logout, loginSuccess } from "../store/authReducer";
 import { getCategories } from "../api/categoryService";
+import axios from "axios";
 import {
   User,
   Search,
@@ -17,11 +18,22 @@ import {
 const Header = () => {
   const dispatch = useDispatch();
   const [isShopOpen, setIsShopOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  // Redux'tan giriş durumunu alıyoruz
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+  const user = useSelector((state) => state.auth.user);
   const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token && !isLoggedIn) {
+      const savedUser = JSON.parse(localStorage.getItem("user"));
+      if (savedUser) {
+        dispatch(loginSuccess({ ...savedUser, token }));
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      }
+    }
+  }, [dispatch, isLoggedIn]);
 
   useEffect(() => {
     getCategories()
@@ -31,8 +43,16 @@ const Header = () => {
       .catch((err) => console.error("Kategoriler yüklenemedi:", err));
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    delete axios.defaults.headers.common["Authorization"];
+    dispatch(logout());
+    setIsMenuOpen(false);
+  };
+
   return (
-    <header className="flex flex-wrap items-center justify-between lg:flex-nowrap lg:h-[91px]">
+    <header className="flex flex-wrap items-center justify-between lg:flex-nowrap lg:h-[91px] relative">
       <Link
         to="/"
         className="flex items-center mt-[23px] lg:mt-[16px] ml-[35px] lg:ml-[196px] w-[187px] h-[58px]"
@@ -46,23 +66,58 @@ const Header = () => {
 
       <div className="flex items-center h-[58px] mt-[23px] lg:mt-[16px] lg:order-3">
         <div className="nav-actions flex items-center w-full max-w-[128px] lg:max-w-[324px] h-[24px] gap-[32px] lg:gap-[30px] mr-[40px] lg:mr-[100px] order-2">
-          <div className="desktop-auth hidden lg:flex items-center gap-1">
+          <div className="desktop-auth hidden lg:flex items-center relative">
             {isLoggedIn ? (
-              <button
-                onClick={() => dispatch(logout())}
-                className="text-[#23A6F0] font-bold text-sm"
-              >
-                Logout
-              </button>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-[#23A6F0]">
+                  <User size={16} strokeWidth={2.5} />
+                  <span className="font-bold text-sm">{user?.name}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="text-[#737373] font-bold text-sm hover:text-red-500 transition-all"
+                >
+                  Logout
+                </button>
+              </div>
             ) : (
-              /* Tıklanınca Login ve Register seçeneklerini barındıran sayfaya gidecek */
-              <Link
-                to="/signup"
-                className="text-[#23A6F0] font-bold text-[14px] leading-[24px] tracking-[0.2px] whitespace-nowrap flex items-center gap-[5px] hover:text-[#1a7bb3] transition-all"
-              >
-                <User size={16} strokeWidth={2.5} />
-                <span>Login / Register</span>
-              </Link>
+              <div className="relative">
+                <button
+                  onClick={() => setIsAuthOpen(!isAuthOpen)}
+                  className="text-[#23A6F0] font-bold text-[14px] leading-[24px] tracking-[0.2px] whitespace-nowrap flex items-center gap-[5px] hover:text-[#1a7bb3] transition-all"
+                >
+                  <User size={16} strokeWidth={2.5} />
+                  <span>Login / Register</span>
+                  {isAuthOpen ? (
+                    <ChevronUp size={14} />
+                  ) : (
+                    <ChevronDown size={14} />
+                  )}
+                </button>
+
+                {isAuthOpen && (
+                  <ul className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl p-2 z-[999] flex flex-col gap-2 min-w-[120px] list-none">
+                    <li>
+                      <Link
+                        to="/login"
+                        className="text-[#737373] hover:text-[#23A6F0] block px-4 py-2 text-sm font-bold transition-all text-center"
+                        onClick={() => setIsAuthOpen(false)}
+                      >
+                        Login
+                      </Link>
+                    </li>
+                    <li className="border-t border-gray-100">
+                      <Link
+                        to="/signup"
+                        className="text-[#737373] hover:text-[#23A6F0] block px-4 py-2 text-sm font-bold transition-all text-center"
+                        onClick={() => setIsAuthOpen(false)}
+                      >
+                        Register
+                      </Link>
+                    </li>
+                  </ul>
+                )}
+              </div>
             )}
           </div>
 
@@ -86,6 +141,56 @@ const Header = () => {
               className="cursor-pointer"
               size={24}
             />
+            {isMenuOpen && (
+              <div className="absolute top-full right-0 mt-4 bg-white border border-gray-100 rounded-lg shadow-xl py-4 px-6 z-[1000] min-w-[160px] flex flex-col gap-4 animate-fadeIn">
+                {isLoggedIn ? (
+                  <>
+                    <div className="flex items-center gap-2 text-[#23A6F0] font-bold text-sm">
+                      <User size={16} strokeWidth={2.5} />
+                      <span>{user?.name}</span>
+                    </div>
+                    <Link
+                      to="/profile"
+                      className="text-[#737373] font-bold text-sm"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      to="/favorites"
+                      className="flex items-center gap-2 text-[#737373] font-bold text-sm"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <Heart size={16} strokeWidth={2.5} />{" "}
+                      <span>Favorites</span>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="text-red-500 font-bold text-sm text-left"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      className="text-[#23A6F0] font-bold text-sm"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      to="/signup"
+                      className="text-[#23A6F0] font-bold text-sm"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Register
+                    </Link>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -114,7 +219,6 @@ const Header = () => {
               Shop{" "}
               {isShopOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </div>
-
             {isShopOpen && (
               <ul className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl p-4 z-[999] flex flex-col gap-3 min-w-[120px] list-none">
                 {categories.map((category) => (
@@ -128,9 +232,6 @@ const Header = () => {
                     </Link>
                   </li>
                 ))}
-                {categories.length === 0 && (
-                  <li className="text-gray-400 text-xs">Loading...</li>
-                )}
               </ul>
             )}
           </li>
@@ -145,7 +246,7 @@ const Header = () => {
               to="/product"
               className="no-underline font-['Montserrat'] text-[#737373] font-[550] text-[30px] lg:text-[14px] leading-[45px] tracking-[0.2px] text-center hover:text-[#23A6F0] transition-all"
             >
-              Product{" "}
+              Product
             </Link>
           </li>
           <li>

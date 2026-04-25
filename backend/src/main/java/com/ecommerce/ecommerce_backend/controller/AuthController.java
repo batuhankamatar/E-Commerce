@@ -8,6 +8,9 @@ import com.ecommerce.ecommerce_backend.security.TokenService;
 import com.ecommerce.ecommerce_backend.service.AuthService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.stream.Collectors;
@@ -19,6 +22,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final TokenService tokenService;
+    private final AuthenticationManager authManager;
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
@@ -28,6 +32,22 @@ public class AuthController {
 
         UserResponse response = convertToResponse(user);
         response.setToken(token);
+        return response;
+    }
+
+    @PostMapping("/login")
+    public UserResponse login(@RequestBody LoginRequest loginRequest) {
+        System.out.println("Giriş Denemesi -> Email: " + loginRequest.getEmail() + " | Şifre: " + loginRequest.getPassword());
+        Authentication auth = authManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
+        );
+
+        User user = (User) auth.getPrincipal();
+
+        String token = tokenService.generateJwt(auth);
+        UserResponse response = convertToResponse(user);
+        response.setToken(token);
+
         return response;
     }
 
@@ -51,11 +71,5 @@ public class AuthController {
         }
 
         return response;
-    }
-
-    @PostMapping("/login")
-    public UserResponse login(@RequestBody LoginRequest loginRequest) {
-        User user = authService.login(loginRequest.getEmail(), loginRequest.getPassword());
-        return convertToResponse(user);
     }
 }

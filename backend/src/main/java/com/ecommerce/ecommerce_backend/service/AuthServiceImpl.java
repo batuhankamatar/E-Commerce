@@ -19,7 +19,7 @@ import java.util.Optional;
 
 @AllArgsConstructor
 @Service
-public class AuthServiceImpl implements AuthService {
+public class AuthServiceImpl implements AuthService, org.springframework.security.core.userdetails.UserDetailsService {
 
     private final UserRepository userRepository;
     private final StoreRepository storeRepository;
@@ -78,5 +78,12 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return user;
+    }
+
+    @Override
+    public org.springframework.security.core.userdetails.UserDetails loadUserByUsername(String email)
+            throws org.springframework.security.core.userdetails.UsernameNotFoundException {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException("User not found with email: " + email));
     }
 }
