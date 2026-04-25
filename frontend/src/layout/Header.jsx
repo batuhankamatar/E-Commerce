@@ -4,6 +4,7 @@ import logo from "../assets/logo.png";
 import { useSelector, useDispatch } from "react-redux";
 import { logout, loginSuccess } from "../store/authReducer";
 import { getCategories } from "../api/categoryService";
+import { setCategories } from "../store/productSlice";
 import axios from "axios";
 import {
   User,
@@ -20,9 +21,11 @@ const Header = () => {
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   const user = useSelector((state) => state.auth.user);
-  const [categories, setCategories] = useState([]);
+
+  const [categoriesList, setCategoriesList] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -38,10 +41,11 @@ const Header = () => {
   useEffect(() => {
     getCategories()
       .then((data) => {
-        setCategories(data);
+        setCategoriesList(data);
+        dispatch(setCategories(data));
       })
       .catch((err) => console.error("Kategoriler yüklenemedi:", err));
-  }, []);
+  }, [dispatch]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -123,15 +127,11 @@ const Header = () => {
 
           <div className="flex items-center gap-[24px] lg:gap-[30px] text-[#252B42] lg:text-[#23A6F0]">
             <Search className="search flex w-[24px] h-[24px] lg:w-[16px] lg:h-[16px] cursor-pointer" />
-
             <div className="flex items-center gap-1 cursor-pointer">
               <ShoppingCart className="shopping-cart flex w-[24px] h-[24px] lg:w-[16px] lg:h-[16px]" />
-              <span className="hidden lg:block text-[12px]"></span>
             </div>
-
             <div className="hidden lg:flex items-center gap-1 cursor-pointer">
               <Heart className="desktop-favs w-[24px] h-[24px] lg:w-[16px] lg:h-[16px] shrink-0" />
-              <span className="text-[12px]"></span>
             </div>
           </div>
 
@@ -221,7 +221,7 @@ const Header = () => {
             </div>
             {isShopOpen && (
               <ul className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl p-4 z-[999] flex flex-col gap-3 min-w-[120px] list-none">
-                {categories.map((category) => (
+                {categoriesList.map((category) => (
                   <li key={category.id} className="text-center">
                     <Link
                       to={`/shop/${category.code.toLowerCase()}`}
