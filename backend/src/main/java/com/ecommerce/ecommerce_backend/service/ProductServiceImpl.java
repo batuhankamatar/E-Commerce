@@ -4,11 +4,14 @@ import com.ecommerce.ecommerce_backend.dto.ProductResponse;
 import com.ecommerce.ecommerce_backend.entity.Category;
 import com.ecommerce.ecommerce_backend.entity.Product;
 import com.ecommerce.ecommerce_backend.entity.ProductImage;
+import com.ecommerce.ecommerce_backend.entity.Store;
 import com.ecommerce.ecommerce_backend.exception.ProductException;
+import com.ecommerce.ecommerce_backend.repository.ProductImageRepository;
 import com.ecommerce.ecommerce_backend.repository.ProductRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import com.ecommerce.ecommerce_backend.dto.ProductRequest;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,6 +22,8 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryService categoryService;
+    private final StoreService storeService;
+    private final ProductImageRepository productImageRepository;
 
     @Override
     public List<ProductResponse> findAll() {
@@ -39,20 +44,35 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductResponse save(Product product, Long categoryId) {
+    public ProductResponse save(Product product, Long categoryId, Long storeId) {
         Category category = categoryService.findEntityById(categoryId);
+        Store store = storeService.findEntityById(storeId);
+
         product.setCategory(category);
+        product.setStore(store);
+
         return convertToResponse(productRepository.save(product));
     }
 
     @Override
-    public ProductResponse update(Long id, Product productDetails) {
+    public ProductResponse update(Long id, ProductRequest request, Long storeId) {
         Product existingProduct = findEntityById(id);
 
-        existingProduct.setName(productDetails.getName());
-        existingProduct.setDescription(productDetails.getDescription());
-        existingProduct.setPrice(productDetails.getPrice());
-        existingProduct.setStock(productDetails.getStock());
+        if (!existingProduct.getStore().getId().equals(storeId)) {
+            throw new ProductException("Bu ürünü güncelleme yetkiniz yok!", HttpStatus.FORBIDDEN);
+        }
+
+        existingProduct.setName(request.getName());
+        existingProduct.setDescription(request.getDescription());
+        existingProduct.setPrice(request.getPrice());
+        existingProduct.setDiscountPrice(request.getDiscountPrice());
+        existingProduct.setStock(request.getStock());
+        existingProduct.setImg(request.getMainImage());
+
+        if (request.getCategoryId() != null) {
+            Category newCategory = categoryService.findEntityById(request.getCategoryId());
+            existingProduct.setCategory(newCategory);
+        }
 
         return convertToResponse(productRepository.save(existingProduct));
     }
@@ -69,21 +89,51 @@ public class ProductServiceImpl implements ProductService {
         response.setName(product.getName());
         response.setDescription(product.getDescription());
         response.setPrice(product.getPrice());
+        response.setDiscountPrice(product.getDiscountPrice());
         response.setStock(product.getStock());
         response.setSellCount(product.getSellCount());
-        response.setMainImage(product.getImg());
+        response.setRating(product.getRating());
+
+        if (product.getImages() != null && !product.getImages().isEmpty()) {
+            String mainImg = product.getImages().stream()
+                    .filter(img -> img.getDisplayOrder() == 1)
+                    .map(ProductImage::getImg)
+                    .findFirst()
+                    .orElse(product.getImages().get(0).getImg());
+
+            response.setMainImage(mainImg);
+
+            response.setImageUrls(product.getImages().stream()
+                    .map(ProductImage::getImg)
+                    .collect(Collectors.toList()));
+        }
 
         if (product.getCategory() != null) {
             response.setCategoryId(product.getCategory().getId());
             response.setCategoryName(product.getCategory().getTitle());
         }
 
-        if (product.getImages() != null) {
-            response.setImageUrls(product.getImages().stream()
-                    .map(ProductImage::getImg)
-                    .collect(Collectors.toList()));
+        if (product.getStore() != null) {
+            response.setStoreId(product.getStore().getId());
+            response.setStoreName(product.getStore().getStoreName());
         }
 
         return response;
+    }
+
+    @Override
+    public void updateProductImage(Long id, String fileName) {
+        Product product = findEntityById(id);
+
+        ProductImage newImage = new ProductImage();
+        newImage.setImg(fileName);
+        newImage.setProduct(product);
+        newImage.setDisplayOrder(1);
+
+        if (product.getImages() != null) {
+            product.getImages().forEach(img -> img.setDisplayOrder(img.getDisplayOrder() + 1));
+        }
+
+        productImageRepository.save(newImage);
     }
 }

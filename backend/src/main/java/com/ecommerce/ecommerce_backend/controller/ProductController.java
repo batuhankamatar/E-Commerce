@@ -1,9 +1,15 @@
 package com.ecommerce.ecommerce_backend.controller;
 
+import com.ecommerce.ecommerce_backend.dto.ProductRequest;
 import com.ecommerce.ecommerce_backend.dto.ProductResponse;
+import com.ecommerce.ecommerce_backend.entity.Product;
+import com.ecommerce.ecommerce_backend.service.FileStorageService;
+import com.ecommerce.ecommerce_backend.service.ImageService;
 import com.ecommerce.ecommerce_backend.service.ProductService;
 import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -13,6 +19,8 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final ImageService imageService;
+    private final FileStorageService fileStorageService;
 
     @GetMapping
     public List<ProductResponse> findAll() {
@@ -29,5 +37,48 @@ public class ProductController {
         return productService.findAll().stream()
                 .filter(p -> p.getCategoryId().equals(categoryId))
                 .toList();
+    }
+
+    @GetMapping("/daily-deals")
+    public List<ProductResponse> getDailyDeals() {
+        return productService.findAll().stream()
+                .filter(p -> p.getDiscountPrice() != null && p.getDiscountPrice() < p.getPrice())
+                .sorted((p1, p2) -> Double.compare(
+                        (p2.getPrice() - p2.getDiscountPrice()),
+                        (p1.getPrice() - p1.getDiscountPrice())))
+                .limit(10)
+                .toList();
+    }
+
+    @PostMapping("/{categoryId}/{storeId}")
+    public ProductResponse save(@PathVariable Long categoryId,
+                                @PathVariable Long storeId,
+                                @RequestBody Product product) {
+        return productService.save(product, categoryId, storeId);
+    }
+
+    @PutMapping("/{id}/{storeId}")
+    public ProductResponse update(@PathVariable Long id,
+                                  @PathVariable Long storeId,
+                                  @RequestBody ProductRequest request) {
+        return productService.update(id, request, storeId);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        productService.delete(id);
+    }
+
+    @PostMapping("/{id}/upload-image")
+    public ResponseEntity<String> handleImageUpload(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        try {
+            byte[] processedImage = imageService.processImage(file);
+            String fileName = "product_" + id + ".png";
+            fileStorageService.saveFile(processedImage, fileName);
+            productService.updateProductImage(id, fileName);
+            return ResponseEntity.ok("Görsel başarıyla formatlandı ve yüklendi: " + fileName);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Hata: " + e.getMessage());
+        }
     }
 }

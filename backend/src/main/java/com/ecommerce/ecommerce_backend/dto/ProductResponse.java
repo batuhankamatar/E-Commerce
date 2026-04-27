@@ -13,10 +13,14 @@ public class ProductResponse {
     private String name;
     private String description;
     private Double price;
+    private Double discountPrice;
     private Integer stock;
     private int sellCount;
+    private Double rating;
     private String mainImage;
     private Long categoryId;
     private String categoryName;
+    private Long storeId;
+    private String storeName;
     private List<String> imageUrls;
 }
