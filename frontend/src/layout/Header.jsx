@@ -56,7 +56,7 @@ const Header = () => {
   };
 
   return (
-    <header className="flex flex-wrap items-center justify-between lg:flex-nowrap lg:h-[91px] relative">
+    <header className="flex flex-wrap items-center justify-between mb-[98px] lg:mb-0 lg:flex-nowrap lg:h-[91px] relative">
       <Link
         to="/"
         className="flex items-center mt-[23px] lg:mt-[16px] ml-[35px] lg:ml-[196px] w-[187px] h-[58px]"

@@ -78,4 +78,9 @@ public class Product {
     @ManyToMany(mappedBy = "favoriteProducts")
     private Set<User> favoritedByUsers = new HashSet<>();
 
+    @Column(name = "is_bestseller")
+    private Boolean bestseller = false;
+
+    @Column(name = "gender")
+    private String gender = "UNISEX";
 }

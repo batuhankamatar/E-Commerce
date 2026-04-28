@@ -1,5 +1,6 @@
 package com.ecommerce.ecommerce_backend.service;
 
+import com.ecommerce.ecommerce_backend.dto.BestsellerProductResponse;
 import com.ecommerce.ecommerce_backend.dto.ProductRequest;
 import com.ecommerce.ecommerce_backend.dto.ProductResponse;
 import com.ecommerce.ecommerce_backend.entity.Product;
@@ -13,4 +14,6 @@ public interface ProductService {
     ProductResponse update(Long id, ProductRequest productRequest, Long storeId);
     void delete(Long id);
     void updateProductImage(Long id, String fileName);
+    List<BestsellerProductResponse> findTop6ByCategoryId(Long categoryId);
+    ProductResponse findMostPopular();
 }

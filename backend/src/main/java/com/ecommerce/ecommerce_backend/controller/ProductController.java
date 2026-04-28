@@ -1,5 +1,6 @@
 package com.ecommerce.ecommerce_backend.controller;
 
+import com.ecommerce.ecommerce_backend.dto.BestsellerProductResponse;
 import com.ecommerce.ecommerce_backend.dto.ProductRequest;
 import com.ecommerce.ecommerce_backend.dto.ProductResponse;
 import com.ecommerce.ecommerce_backend.entity.Product;
@@ -80,5 +81,15 @@ public class ProductController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Hata: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/category/{categoryId}/bestsellers")
+    public List<BestsellerProductResponse> getBestsellers(@PathVariable Long categoryId) {
+        return productService.findTop6ByCategoryId(categoryId);
+    }
+
+    @GetMapping("/most-popular")
+    public ProductResponse getMostPopular() {
+        return productService.findMostPopular();
     }
 }

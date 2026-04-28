@@ -34,7 +34,7 @@ const DailyDeals = () => {
   };
 
   return (
-    <section className="py-[80px] px-4 lg:px-[195px] bg-white">
+    <section className="py-[80px] px-4 lg:px-[195px] bg-[#FAFAFA]">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-[30px]">
         {mainDeals.map((deal) => (
           <div

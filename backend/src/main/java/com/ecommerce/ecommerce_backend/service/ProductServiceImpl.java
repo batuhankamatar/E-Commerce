@@ -1,5 +1,6 @@
 package com.ecommerce.ecommerce_backend.service;
 
+import com.ecommerce.ecommerce_backend.dto.BestsellerProductResponse;
 import com.ecommerce.ecommerce_backend.dto.ProductResponse;
 import com.ecommerce.ecommerce_backend.entity.Category;
 import com.ecommerce.ecommerce_backend.entity.Product;
@@ -125,15 +126,52 @@ public class ProductServiceImpl implements ProductService {
     public void updateProductImage(Long id, String fileName) {
         Product product = findEntityById(id);
 
+        if (product.getImages() != null) {
+            product.getImages().forEach(img -> img.setDisplayOrder(img.getDisplayOrder() + 1));
+            productImageRepository.saveAll(product.getImages());
+        }
+
         ProductImage newImage = new ProductImage();
         newImage.setImg(fileName);
         newImage.setProduct(product);
         newImage.setDisplayOrder(1);
-
-        if (product.getImages() != null) {
-            product.getImages().forEach(img -> img.setDisplayOrder(img.getDisplayOrder() + 1));
-        }
-
         productImageRepository.save(newImage);
+    }
+
+    @Override
+    public List<BestsellerProductResponse> findTop6ByCategoryId(Long categoryId) {
+        return productRepository.findTop6ByCategoryOrderBySellCount(categoryId)
+                .stream()
+                .map(this::convertToBestsellerResponse)
+                .collect(Collectors.toList());
+    }
+
+    private BestsellerProductResponse convertToBestsellerResponse(Product product) {
+        BestsellerProductResponse response = new BestsellerProductResponse();
+        response.setId(product.getId());
+        response.setName(product.getName());
+        response.setPrice(product.getPrice());
+        response.setDiscountPrice(product.getDiscountPrice());
+        response.setGender(product.getGender());
+
+        if (product.getImages() != null && !product.getImages().isEmpty()) {
+            String mainImg = product.getImages().stream()
+                    .filter(img -> img.getDisplayOrder() == 1)
+                    .map(ProductImage::getImg)
+                    .findFirst()
+                    .orElse(product.getImages().get(0).getImg());
+
+            response.setMainImage(mainImg);
+        }
+        return response;
+    }
+
+    @Override
+    public ProductResponse findMostPopular() {
+        Product product = productRepository.findMostPopular();
+        if (product == null) {
+            throw new ProductException("En popüler ürün bulunamadı!", HttpStatus.NOT_FOUND);
+        }
+        return convertToResponse(product);
     }
 }
