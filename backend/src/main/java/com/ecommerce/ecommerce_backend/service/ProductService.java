@@ -3,6 +3,7 @@ package com.ecommerce.ecommerce_backend.service;
 import com.ecommerce.ecommerce_backend.dto.BestsellerProductResponse;
 import com.ecommerce.ecommerce_backend.dto.ProductRequest;
 import com.ecommerce.ecommerce_backend.dto.ProductResponse;
+import com.ecommerce.ecommerce_backend.dto.ShopResponse;
 import com.ecommerce.ecommerce_backend.entity.Product;
 import java.util.List;
 
@@ -16,4 +17,5 @@ public interface ProductService {
     void updateProductImage(Long id, String fileName);
     List<BestsellerProductResponse> findTop6ByCategoryId(Long categoryId);
     ProductResponse findMostPopular();
+    ShopResponse findShopProducts(String categoryCode, String sort, Double minPrice, Double maxPrice, int page, int size);
 }

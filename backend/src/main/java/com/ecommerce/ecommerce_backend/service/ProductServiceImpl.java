@@ -2,6 +2,7 @@ package com.ecommerce.ecommerce_backend.service;
 
 import com.ecommerce.ecommerce_backend.dto.BestsellerProductResponse;
 import com.ecommerce.ecommerce_backend.dto.ProductResponse;
+import com.ecommerce.ecommerce_backend.dto.ShopResponse;
 import com.ecommerce.ecommerce_backend.entity.Category;
 import com.ecommerce.ecommerce_backend.entity.Product;
 import com.ecommerce.ecommerce_backend.entity.ProductImage;
@@ -173,5 +174,16 @@ public class ProductServiceImpl implements ProductService {
             throw new ProductException("En popüler ürün bulunamadı!", HttpStatus.NOT_FOUND);
         }
         return convertToResponse(product);
+    }
+
+    @Override
+    public ShopResponse findShopProducts(String categoryCode, String sort, Double minPrice, Double maxPrice, int page, int size) {
+        int offset = page * size;
+        List<ProductResponse> products = productRepository
+                .findShopProducts(categoryCode, sort, minPrice, maxPrice, size, offset)
+                .stream().map(this::convertToResponse).collect(Collectors.toList());
+        long totalCount = productRepository.countShopProducts(categoryCode, minPrice, maxPrice);
+        int totalPages = (int) Math.ceil((double) totalCount / size);
+        return new ShopResponse(products, totalCount, totalPages, page);
     }
 }

@@ -24,13 +24,9 @@ const DailyDeals = () => {
 
   const getImageUrl = (mainImage) => {
     if (!mainImage) return null;
-
-    try {
-      return new URL(`/src/assets/products/${mainImage}`, import.meta.url).href;
-    } catch (error) {
-      console.error("Görsel Bulunamadı:", mainImage);
-      return null;
-    }
+    return mainImage.startsWith("http")
+      ? mainImage
+      : new URL(`/src/assets/products/${mainImage}`, import.meta.url).href;
   };
 
   return (

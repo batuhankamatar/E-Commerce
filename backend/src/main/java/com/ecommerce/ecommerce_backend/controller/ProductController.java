@@ -3,6 +3,7 @@ package com.ecommerce.ecommerce_backend.controller;
 import com.ecommerce.ecommerce_backend.dto.BestsellerProductResponse;
 import com.ecommerce.ecommerce_backend.dto.ProductRequest;
 import com.ecommerce.ecommerce_backend.dto.ProductResponse;
+import com.ecommerce.ecommerce_backend.dto.ShopResponse;
 import com.ecommerce.ecommerce_backend.entity.Product;
 import com.ecommerce.ecommerce_backend.service.FileStorageService;
 import com.ecommerce.ecommerce_backend.service.ImageService;
@@ -91,5 +92,17 @@ public class ProductController {
     @GetMapping("/most-popular")
     public ProductResponse getMostPopular() {
         return productService.findMostPopular();
+    }
+
+    @GetMapping("/shop")
+    public ShopResponse getShopProducts(
+            @RequestParam(required = false) String categoryCode,
+            @RequestParam(defaultValue = "popularity") String sort,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size
+    ) {
+        return productService.findShopProducts(categoryCode, sort, minPrice, maxPrice, page, size);
     }
 }
