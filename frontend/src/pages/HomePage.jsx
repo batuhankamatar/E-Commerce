@@ -7,6 +7,7 @@ import MostPopular from "../components/home/MostPopular";
 import MostPopularInverted from "../components/home/MostPopularInverted";
 import BestsellerSimple from "../components/home/BestsellerSimple";
 import Clients from "../components/home/Clients";
+import FeaturedPosts from "../components/home/FeaturedPosts";
 
 const HomePage = () => {
   return (
@@ -20,6 +21,7 @@ const HomePage = () => {
         <MostPopularInverted />
         <BestsellerSimple />
         <Clients />
+        <FeaturedPosts />
       </main>
     </div>
   );
