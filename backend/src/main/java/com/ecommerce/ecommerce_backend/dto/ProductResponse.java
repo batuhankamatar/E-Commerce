@@ -23,4 +23,5 @@ public class ProductResponse {
     private Long storeId;
     private String storeName;
     private List<String> imageUrls;
+    private Integer reviewCount;
 }

@@ -83,4 +83,7 @@ public class Product {
 
     @Column(name = "gender")
     private String gender = "UNISEX";
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviews;
 }

@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Header from "./layout/Header";
 import Footer from "./layout/Footer";
 import PageContent from "./layout/PageContent";
@@ -11,15 +11,19 @@ import { AuthProvider } from "./context/AuthContext";
 import BlogPage from "./pages/BlogPage";
 import ShopPage from "./pages/ShopPage";
 import TopBar from "./components/shop/TopBar";
+import ProductPage from "./pages/ProductPage";
+import ProductListPage from "./pages/ProductListPage";
 
 function AppContent() {
   const location = useLocation();
-  const isShopPage = location.pathname.startsWith("/shop");
+  const isTopBarPage =
+    location.pathname.startsWith("/shop") ||
+    location.pathname.startsWith("/product");
 
   return (
     <div className="App flex flex-col min-h-screen">
       <ToastContainer position="top-right" autoClose={3000} />
-      {isShopPage && <TopBar />}
+      {isTopBarPage && <TopBar />}
       <Header />
       <PageContent>
         <Routes>
@@ -29,6 +33,8 @@ function AppContent() {
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/shop" element={<ShopPage />} />
           <Route path="/shop/:categoryCode" element={<ShopPage />} />
+          <Route path="/product/:id" element={<ProductPage />} />
+          <Route path="/product" element={<ProductListPage />} />
         </Routes>
       </PageContent>
       <Footer />

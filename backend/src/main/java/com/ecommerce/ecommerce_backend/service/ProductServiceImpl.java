@@ -96,6 +96,8 @@ public class ProductServiceImpl implements ProductService {
         response.setSellCount(product.getSellCount());
         response.setRating(product.getRating());
 
+        response.setReviewCount(product.getReviews() != null ? product.getReviews().size() : 0);
+
         if (product.getImages() != null && !product.getImages().isEmpty()) {
             String mainImg = product.getImages().stream()
                     .filter(img -> img.getDisplayOrder() == 1)
