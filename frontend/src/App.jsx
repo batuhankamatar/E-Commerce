@@ -13,12 +13,15 @@ import ShopPage from "./pages/ShopPage";
 import TopBar from "./components/shop/TopBar";
 import ProductPage from "./pages/ProductPage";
 import ProductListPage from "./pages/ProductListPage";
+import ContactPage from "./pages/ContactPage";
+import TeamPage from "./pages/TeamPage";
 
 function AppContent() {
   const location = useLocation();
   const isTopBarPage =
     location.pathname.startsWith("/shop") ||
-    location.pathname.startsWith("/product");
+    location.pathname.startsWith("/product") ||
+    location.pathname.startsWith("/contact");
 
   return (
     <div className="App flex flex-col min-h-screen">
@@ -35,6 +38,8 @@ function AppContent() {
           <Route path="/shop/:categoryCode" element={<ShopPage />} />
           <Route path="/product/:id" element={<ProductPage />} />
           <Route path="/product" element={<ProductListPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/team" element={<TeamPage />} />
         </Routes>
       </PageContent>
       <Footer />

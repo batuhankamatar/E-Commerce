@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import logo from "../assets/Logo.png";
 import { useSelector, useDispatch } from "react-redux";
 import { logout, loginSuccess } from "../store/authReducer";
@@ -18,14 +18,18 @@ import {
 
 const Header = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   const user = useSelector((state) => state.auth.user);
-
   const [categoriesList, setCategoriesList] = useState([]);
+
+  const showMemberButton = ["/about", "/pricing", "/team", "/contact"].includes(
+    location.pathname,
+  );
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -64,12 +68,12 @@ const Header = () => {
         <img
           src={logo}
           alt="Bandage Logo"
-          className=" flex w-[108px] h-[32px] object-contain"
+          className="flex w-[108px] h-[32px] object-contain"
         />
       </Link>
 
       <div className="flex items-center h-[58px] mt-[23px] lg:mt-[16px] lg:order-3">
-        <div className="nav-actions flex items-center w-full max-w-[128px] lg:max-w-[324px] h-[24px] gap-[32px] lg:gap-[30px] mr-[40px] lg:mr-[100px] order-2">
+        <div className="nav-actions flex items-center w-full max-w-[128px] lg:max-w-fit h-[24px] gap-[32px] lg:gap-[30px] mr-[40px] lg:mr-[100px] order-2">
           <div className="desktop-auth hidden lg:flex items-center relative">
             {isLoggedIn ? (
               <div className="flex items-center gap-4">
@@ -135,6 +139,13 @@ const Header = () => {
             </div>
           </div>
 
+          {showMemberButton && (
+            <button className="hidden lg:flex items-center justify-center gap-[15px] w-[214px] h-[52px] bg-[#23A6F0] rounded-[5px] font-bold text-[14px] leading-[22px] tracking-[0.2px] text-white hover:bg-[#1a7bb3] transition-colors whitespace-nowrap px-[25px] py-[15px]">
+              Become a member
+              <span>→</span>
+            </button>
+          )}
+
           <div className="mobile-menu-container relative lg:hidden">
             <AlignRight
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -161,7 +172,7 @@ const Header = () => {
                       className="flex items-center gap-2 text-[#737373] font-bold text-sm"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      <Heart size={16} strokeWidth={2.5} />{" "}
+                      <Heart size={16} strokeWidth={2.5} />
                       <span>Favorites</span>
                     </Link>
                     <button
@@ -236,7 +247,7 @@ const Header = () => {
             )}
           </li>
           <li className="hidden lg:block font-['Montserrat'] text-[#737373] font-[550] text-[30px] lg:text-[14px] leading-[45px] tracking-[0.2px] text-center hover:text-[#23A6F0] transition-all">
-            <Link to="/">About</Link>
+            <Link to="/team">About</Link>
           </li>
           <li className="hidden lg:block font-['Montserrat'] text-[#737373] font-[550] text-[30px] lg:text-[14px] leading-[45px] tracking-[0.2px] text-center hover:text-[#23A6F0] transition-all">
             <Link to="/blog">Blog</Link>
