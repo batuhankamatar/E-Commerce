@@ -247,7 +247,7 @@ const Header = () => {
             )}
           </li>
           <li className="hidden lg:block font-['Montserrat'] text-[#737373] font-[550] text-[30px] lg:text-[14px] leading-[45px] tracking-[0.2px] text-center hover:text-[#23A6F0] transition-all">
-            <Link to="/team">About</Link>
+            <Link to="/about">About</Link>
           </li>
           <li className="hidden lg:block font-['Montserrat'] text-[#737373] font-[550] text-[30px] lg:text-[14px] leading-[45px] tracking-[0.2px] text-center hover:text-[#23A6F0] transition-all">
             <Link to="/blog">Blog</Link>

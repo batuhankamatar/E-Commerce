@@ -15,6 +15,7 @@ import ProductPage from "./pages/ProductPage";
 import ProductListPage from "./pages/ProductListPage";
 import ContactPage from "./pages/ContactPage";
 import TeamPage from "./pages/TeamPage";
+import AboutPage from "./pages/AboutPage";
 
 function AppContent() {
   const location = useLocation();
@@ -40,6 +41,7 @@ function AppContent() {
           <Route path="/product" element={<ProductListPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/team" element={<TeamPage />} />
+          <Route path="/about" element={<AboutPage />} />
         </Routes>
       </PageContent>
       <Footer />
