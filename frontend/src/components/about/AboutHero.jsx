@@ -10,8 +10,7 @@ const ellipse3Url = new URL("../../assets/about/ellipse3.png", import.meta.url)
 
 const AboutHero = () => (
   <section className="bg-white font-['Montserrat'] overflow-hidden">
-    <div className="w-full max-w-[1050px] mx-auto px-4 lg:px-0 pb-[112px] flex flex-col lg:flex-row items-center gap-[80px]">
-      {/* Sol — Metin: mobilde üstte ve ortalı, desktop'ta solda */}
+    <div className="w-full max-w-[1050px] mx-auto px-4 lg:px-0 flex flex-col lg:flex-row items-center gap-[80px]">
       <div className="flex flex-col gap-[35px] w-full lg:w-[599px] order-1 lg:order-1 items-center lg:items-start text-center lg:text-left">
         <span className="font-bold text-[16px] leading-6 tracking-[0.1px] text-[#252B42]">
           ABOUT COMPANY
@@ -28,9 +27,7 @@ const AboutHero = () => (
         </button>
       </div>
 
-      {/* Sağ — Görsel: mobilde altında, desktop'ta sağda */}
       <div className="relative w-full h-[420px] lg:w-[571px] lg:h-[620px] order-2 lg:order-2 flex-shrink-0">
-        {/* Büyük pembe daire */}
         <div
           className="absolute rounded-full z-0"
           style={{
@@ -43,7 +40,6 @@ const AboutHero = () => (
           }}
         />
 
-        {/* Ellipse 1 — sol üst */}
         <img
           src={ellipse1Url}
           alt=""
@@ -51,7 +47,6 @@ const AboutHero = () => (
           style={{ width: "13%", height: "13%", top: "15%", left: "13%" }}
         />
 
-        {/* Ellipse 2 — mor sol alt */}
         <img
           src={ellipse2Url}
           alt=""
@@ -59,7 +54,6 @@ const AboutHero = () => (
           style={{ width: "3%", height: "3%", top: "65%", left: "16%" }}
         />
 
-        {/* Ellipse 2 kopyası — mor sağ üst */}
         <img
           src={ellipse2Url}
           alt=""
@@ -67,7 +61,6 @@ const AboutHero = () => (
           style={{ width: "3%", height: "3%", top: "30%", right: "20%" }}
         />
 
-        {/* Ellipse 3 — küçük pembe sağ orta */}
         <img
           src={ellipse3Url}
           alt=""
@@ -75,7 +68,6 @@ const AboutHero = () => (
           style={{ width: "5%", height: "5%", top: "48%", right: "18%" }}
         />
 
-        {/* Ana görsel */}
         <img
           src={imgUrl}
           alt="About Us"
