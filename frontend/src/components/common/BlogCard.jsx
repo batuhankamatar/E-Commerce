@@ -6,18 +6,23 @@ const BlogCard = ({ blog, variant = "default" }) => {
   const navigate = useNavigate();
 
   const getImageUrl = (image) => {
-    if (!image) return null;
+    if (!image) return "https://via.placeholder.com/400x300?text=No+Image";
     if (image.startsWith("http")) return image;
     return new URL(`/src/assets/posts/${image}`, import.meta.url).href;
   };
 
   const formatDate = (dateStr) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    });
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      });
+    } catch (e) {
+      return dateStr;
+    }
   };
 
   const isPage = variant === "page";
@@ -40,7 +45,7 @@ const BlogCard = ({ blog, variant = "default" }) => {
           </span>
         )}
         <img
-          src={getImageUrl(blog.image)}
+          src={getImageUrl(blog.img)}
           alt={blog.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
@@ -65,7 +70,7 @@ const BlogCard = ({ blog, variant = "default" }) => {
           </h3>
 
           <p className="font-normal text-[14px] leading-5 tracking-[0.2px] text-[#737373] line-clamp-3">
-            {blog.excerpt}
+            {blog.description}{" "}
           </p>
         </div>
 
@@ -80,7 +85,7 @@ const BlogCard = ({ blog, variant = "default" }) => {
             <div className="flex items-center gap-[5px]">
               <BarChart2 size={12} color="#737373" />
               <span className="font-normal text-[12px] leading-4 tracking-[0.2px] text-[#737373]">
-                {blog.commentCount} comments
+                {blog.comments} comments{" "}
               </span>
             </div>
           </div>

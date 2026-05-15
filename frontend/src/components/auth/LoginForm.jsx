@@ -1,10 +1,10 @@
+// LoginForm.jsx
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
-import { loginSuccess } from "../../store/authReducer";
+import { loginUser } from "../../store/reducers/clientReducer";
 
 const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,29 +18,24 @@ const LoginForm = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
+  });
 
   const onSubmit = async (data) => {
     setIsLoading(true);
+    const { rememberMe, ...credentials } = data;
+
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/v1/auth/login",
-        data,
-      );
+      const user = await dispatch(loginUser(credentials, rememberMe));
 
-      const userData = response.data;
-      const token = userData.token;
-
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(userData));
-
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      dispatch(loginSuccess(userData));
-
-      toast.success(`Welcome back, ${userData.name}!`);
+      toast.success(`Welcome back, ${user.name}!`);
       navigate(from, { replace: true });
     } catch (error) {
-      console.error("Login hatası:", error);
       const message =
         error.response?.data?.message || "Invalid email or password";
       toast.error(message);
@@ -62,7 +57,7 @@ const LoginForm = () => {
               pattern: { value: /^\S+@\S+$/i, message: "Invalid email" },
             })}
             type="email"
-            className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-[#23A6F0] focus:border-[#23A6F0] sm:text-sm"
+            className="appearance-none relative block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-[#23A6F0] focus:border-[#23A6F0] sm:text-sm"
             placeholder="example@mail.com"
           />
           {errors.email && (
@@ -77,7 +72,7 @@ const LoginForm = () => {
           <input
             {...register("password", { required: "Password is required" })}
             type="password"
-            className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-[#23A6F0] focus:border-[#23A6F0] sm:text-sm"
+            className="appearance-none relative block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-[#23A6F0] focus:border-[#23A6F0] sm:text-sm"
             placeholder="********"
           />
           {errors.password && (
@@ -86,19 +81,32 @@ const LoginForm = () => {
             </p>
           )}
         </div>
+
+        <div className="flex items-center">
+          <input
+            {...register("rememberMe")}
+            id="rememberMe"
+            type="checkbox"
+            className="h-4 w-4 text-[#23A6F0] focus:ring-[#23A6F0] border-gray-300 rounded cursor-pointer"
+          />
+          <label
+            htmlFor="rememberMe"
+            className="ml-2 block text-sm text-[#737373] cursor-pointer"
+          >
+            Remember Me
+          </label>
+        </div>
       </div>
 
-      <div>
-        <button
-          type="submit"
-          disabled={isLoading}
-          className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-[#23A6F0] hover:bg-[#1a7bb3] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#23A6F0] transition-all ${
-            isLoading ? "opacity-70 cursor-not-allowed" : ""
-          }`}
-        >
-          {isLoading ? "Signing in..." : "Login"}
-        </button>
-      </div>
+      <button
+        type="submit"
+        disabled={isLoading}
+        className={`w-full py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-[#23A6F0] hover:bg-[#1a7bb3] transition-all ${
+          isLoading ? "opacity-70 cursor-not-allowed" : ""
+        }`}
+      >
+        {isLoading ? "Signing in..." : "Login"}
+      </button>
     </form>
   );
 };

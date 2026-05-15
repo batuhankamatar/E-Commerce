@@ -1,37 +1,31 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import axiosInstance from "../../api/axiosInstance";
+import ProductCard from "../shop/ProductCard";
 
 const BestsellerProductsInverted = () => {
-  const [categories, setCategories] = useState([]);
+  const categories = useSelector((state) => state.product.categories) || [];
   const [bestsellers, setBestsellers] = useState([]);
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
   const [activeGender, setActiveGender] = useState("MALE");
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchAllCategories = async () => {
-      try {
-        const res = await axiosInstance.get("/categories");
-        setCategories(res.data);
-      } catch (err) {
-        console.error("Kategoriler çekilemedi:", err);
-      }
-    };
-    fetchAllCategories();
-  }, []);
 
   useEffect(() => {
     if (categories.length > 0) {
-      const activeCategoryId = categories[activeCategoryIndex].id;
+      const activeCategoryId = categories[activeCategoryIndex]?.id;
+      if (!activeCategoryId) return;
+
       const fetchBestsellers = async () => {
         try {
           const res = await axiosInstance.get(
-            `/products/category/${activeCategoryId}/bestsellers`,
+            `/products?category=${activeCategoryId}&sort=rating:desc&limit=8`,
           );
-          setBestsellers(res.data);
+
+          if (res.data && res.data.products) {
+            setBestsellers(res.data.products);
+          }
         } catch (err) {
           console.error("Bestseller çekme hatası:", err);
+          setBestsellers([]);
         }
       };
       fetchBestsellers();
@@ -47,23 +41,15 @@ const BestsellerProductsInverted = () => {
     if (activeGender === "FEMALE")
       return gender === "FEMALE" || gender === "UNISEX";
     if (activeGender === "ACCESSORY") return gender === "ACCESSORY";
-    return false;
+    return true;
   });
 
   const getCategoryImageUrl = (img) => {
     if (!img)
-      return new URL(`../../assets/categories/default.jpg`, import.meta.url)
-        .href;
+      return "https://via.placeholder.com/400x800?text=No+Category+Image";
     return img.startsWith("http")
       ? img
       : new URL(`../../assets/categories/${img}`, import.meta.url).href;
-  };
-
-  const getProductImageUrl = (mainImage) => {
-    if (!mainImage) return null;
-    return mainImage.startsWith("http")
-      ? mainImage
-      : new URL(`/src/assets/products/${mainImage}`, import.meta.url).href;
   };
 
   const handlePrev = () => {
@@ -78,7 +64,7 @@ const BestsellerProductsInverted = () => {
     );
   };
 
-  if (!activeCategory) return null;
+  if (categories.length === 0 || !activeCategory) return null;
 
   return (
     <section className="bg-white font-['Montserrat']">
@@ -90,37 +76,33 @@ const BestsellerProductsInverted = () => {
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent" />
-          <div className="absolute top-0 left-0 right-0 flex flex-col gap-[5px] pt-12 pl-12 pr-6">
-            <span className="font-bold text-[14px] leading-6 tracking-[0.2px] text-white">
-              {activeCategory.title}
-            </span>
-            <span className="font-bold text-[14px] leading-6 tracking-[0.2px] text-white">
-              {filteredProducts.length} Items
-            </span>
+          <div className="absolute top-0 left-0 right-0 flex flex-col gap-[5px] pt-12 pl-12 pr-6 text-white font-bold">
+            <span className="text-[14px]">{activeCategory.title}</span>
+            <span className="text-[14px]">{filteredProducts.length} Items</span>
           </div>
         </div>
 
         <div className="flex flex-col items-center gap-6 pt-20 pb-20 px-4">
-          <span className="font-bold text-[24px] leading-8 tracking-[0.1px] text-[#252B42] text-center w-full">
+          <span className="font-bold text-[24px] text-[#252B42] text-center">
             BESTSELLER PRODUCTS
           </span>
           <div className="flex flex-col items-center gap-6 py-6 w-full">
-            <div className="flex items-center justify-center">
+            <div className="flex items-center">
               {[
                 { id: "MALE", label: "Men" },
                 { id: "FEMALE", label: "Women" },
                 { id: "ACCESSORY", label: "Accessories" },
-              ].map((filter) => (
+              ].map((f) => (
                 <button
-                  key={filter.id}
-                  onClick={() => setActiveGender(filter.id)}
-                  className={`w-[95px] h-[44px] font-bold text-[14px] transition-colors rounded-[37px] ${activeGender === filter.id ? "text-[#23A6F0]" : "text-[#737373] hover:text-[#23A6F0]"}`}
+                  key={f.id}
+                  onClick={() => setActiveGender(f.id)}
+                  className={`w-[95px] h-[44px] font-bold text-[14px] transition-colors rounded-[37px] ${activeGender === f.id ? "text-[#23A6F0]" : "text-[#737373]"}`}
                 >
-                  {filter.label}
+                  {f.label}
                 </button>
               ))}
             </div>
-            <div className="flex items-center justify-center gap-[15px]">
+            <div className="flex gap-[15px]">
               <button
                 onClick={handlePrev}
                 className="w-[49px] h-[49px] rounded-full border border-[#ECECEC] flex items-center justify-center text-[20px]"
@@ -135,34 +117,10 @@ const BestsellerProductsInverted = () => {
               </button>
             </div>
           </div>
-          <div className="flex flex-col gap-[30px] py-2 items-center w-full">
+          <div className="flex flex-col gap-[30px] w-full px-4">
             {filteredProducts.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => navigate(`/product/${item.id}`)}
-                className="w-[348px] h-[589px] flex flex-col overflow-hidden cursor-pointer group hover:shadow-lg transition-all"
-              >
-                <div className="w-full h-[427px] overflow-hidden">
-                  <img
-                    src={getProductImageUrl(item.mainImage)}
-                    alt={item.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    style={{ mixBlendMode: "multiply" }}
-                  />
-                </div>
-                <div className="flex flex-col items-center justify-center flex-1 px-6 gap-[10px]">
-                  <span className="font-bold text-[16px] text-[#252B42] text-center truncate w-full">
-                    {item.name}
-                  </span>
-                  <div className="flex items-center gap-[5px]">
-                    <span className="font-bold text-[#BDBDBD] line-through">
-                      ${item.price}
-                    </span>
-                    <span className="font-bold text-[#23856D]">
-                      ${item.discountPrice}
-                    </span>
-                  </div>
-                </div>
+              <div key={item.id} className="w-full max-w-[348px] mx-auto">
+                <ProductCard product={item} />
               </div>
             ))}
           </div>
@@ -178,11 +136,9 @@ const BestsellerProductsInverted = () => {
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent" />
-            <div className="absolute top-0 left-0 right-0 flex flex-col gap-[5px] pt-6 pl-12 text-white">
-              <span className="font-bold text-[14px]">
-                {activeCategory.title}
-              </span>
-              <span className="font-bold text-[14px]">
+            <div className="absolute top-0 left-0 right-0 flex flex-col gap-[5px] pt-6 pl-12 text-white font-bold">
+              <span className="text-[14px]">{activeCategory.title}</span>
+              <span className="text-[14px]">
                 {filteredProducts.length} Items
               </span>
             </div>
@@ -199,13 +155,13 @@ const BestsellerProductsInverted = () => {
                     { id: "MALE", label: "Men" },
                     { id: "FEMALE", label: "Women" },
                     { id: "ACCESSORY", label: "Accessories" },
-                  ].map((filter) => (
+                  ].map((f) => (
                     <button
-                      key={filter.id}
-                      onClick={() => setActiveGender(filter.id)}
-                      className={`px-[20px] py-[10px] font-bold text-[14px] transition-colors rounded-[37px] ${activeGender === filter.id ? "text-[#23A6F0]" : "text-[#737373] hover:text-[#23A6F0]"}`}
+                      key={f.id}
+                      onClick={() => setActiveGender(f.id)}
+                      className={`px-[20px] py-[10px] font-bold text-[14px] transition-colors rounded-[37px] ${activeGender === f.id ? "text-[#23A6F0]" : "text-[#737373]"}`}
                     >
-                      {filter.label}
+                      {f.label}
                     </button>
                   ))}
                 </div>
@@ -228,39 +184,15 @@ const BestsellerProductsInverted = () => {
 
             <div className="h-[2px] w-full bg-[#ECECEC]" />
 
-            <div className="grid grid-cols-3 gap-x-[30px] gap-y-[15px] mt-[22px]">
+            <div className="grid grid-cols-3 gap-x-[30px] gap-y-[30px] mt-[22px]">
               {filteredProducts.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => navigate(`/product/${item.id}`)}
-                  className="w-[183px] h-[324px] flex flex-col overflow-hidden cursor-pointer group hover:shadow-lg transition-all"
-                >
-                  <div className="w-full h-[220px] overflow-hidden">
-                    <img
-                      src={getProductImageUrl(item.mainImage)}
-                      alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      style={{ mixBlendMode: "multiply" }}
-                    />
-                  </div>
-                  <div className="flex flex-col items-center justify-center flex-1 p-4 gap-[10px]">
-                    <span className="font-bold text-[14px] text-[#252B42] text-center truncate w-full">
-                      {item.name}
-                    </span>
-                    <div className="flex items-center gap-[5px]">
-                      <span className="font-bold text-[14px] text-[#BDBDBD] line-through">
-                        ${item.price}
-                      </span>
-                      <span className="font-bold text-[14px] text-[#23856D]">
-                        ${item.discountPrice}
-                      </span>
-                    </div>
-                  </div>
+                <div key={item.id} className="w-[183px]">
+                  <ProductCard product={item} />
                 </div>
               ))}
               {filteredProducts.length === 0 && (
                 <div className="col-span-3 text-center py-20 text-gray-400">
-                  No item to display.
+                  No items found.
                 </div>
               )}
             </div>

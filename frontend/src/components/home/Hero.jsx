@@ -11,6 +11,24 @@ const Hero = () => {
   const navigate = useNavigate();
   const categories = useSelector((state) => state.product.categories) || [];
 
+  const getHeroImageUrl = (category) => {
+    if (!category.img) {
+      return new URL(`../../assets/categories/default.jpg`, import.meta.url)
+        .href;
+    }
+
+    if (category.img.startsWith("http")) {
+      return category.img;
+    }
+    try {
+      return new URL(`../../assets/categories/${category.img}`, import.meta.url)
+        .href;
+    } catch (e) {
+      return new URL(`../../assets/categories/default.jpg`, import.meta.url)
+        .href;
+    }
+  };
+
   return (
     <section className="w-full lg:min-w-[1440px] mx-auto h-[640px] border border-gray-100 rounded-[5px] overflow-hidden relative">
       <Swiper
@@ -23,34 +41,27 @@ const Hero = () => {
         className="h-full w-full hero-swiper"
       >
         {categories.length > 0 ? (
-          categories.map((category) => {
-            const imgUrl = category.img
-              ? category.img.startsWith("http")
-                ? category.img
-                : new URL(
-                    `../../assets/categories/${category.img}`,
-                    import.meta.url,
-                  ).href
-              : new URL(`../../assets/categories/default.jpg`, import.meta.url)
-                  .href;
+          categories.slice(0, 5).map((category) => {
+            const imgUrl = getHeroImageUrl(category);
 
             return (
               <SwiperSlide key={category.id}>
                 <div
                   className="w-full h-full flex flex-col items-center justify-end pb-[100px] lg:pb-[140px] bg-cover bg-center transition-all duration-500"
                   style={{
-                    backgroundImage: `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url("${imgUrl}")`,
+                    backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url("${imgUrl}")`,
                   }}
                 >
                   <div className="w-full max-w-[699px] flex flex-col items-center gap-[30px] px-4">
                     <div className="flex flex-col gap-[30px] items-center text-center">
-                      <h1 className="font-['Montserrat'] font-bold text-[40px] lg:text-[58px] leading-[50px] lg:leading-[80px] tracking-[0.2px] text-white uppercase drop-shadow-md">
-                        {category.title} DELIVERY
+                      <h1 className="font-['Montserrat'] font-bold text-[40px] lg:text-[58px] leading-[50px] lg:leading-[80px] tracking-[0.2px] text-white uppercase drop-shadow-lg">
+                        {category.title} COLLECTION
                       </h1>
 
                       <p className="font-['Montserrat'] font-normal text-[16px] lg:text-[20px] leading-[24px] lg:leading-[30px] tracking-[0.2px] text-white max-w-[550px]">
-                        We know how large objects will act, but things on a
-                        small scale just do not act that way.
+                        Discover the latest trends in{" "}
+                        {category.title.toLowerCase()} and find your unique
+                        style with our new arrivals.
                       </p>
                     </div>
 
@@ -61,7 +72,7 @@ const Hero = () => {
                       className="w-[180px] h-[62px] bg-[#23A6F0] rounded-[5px] flex items-center justify-center hover:bg-[#1a7bb3] transition-all shadow-lg active:scale-95"
                     >
                       <span className="font-['Montserrat'] font-bold text-[24px] leading-[32px] tracking-[0.1px] text-white">
-                        Start Now
+                        Shop Now
                       </span>
                     </button>
                   </div>
@@ -72,7 +83,9 @@ const Hero = () => {
         ) : (
           <SwiperSlide>
             <div className="w-full h-full bg-gray-200 animate-pulse flex items-center justify-center">
-              <span className="text-[#737373] font-bold">Loading...</span>
+              <span className="text-[#737373] font-bold">
+                Loading Categories...
+              </span>
             </div>
           </SwiperSlide>
         )}

@@ -1,25 +1,24 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:8080/api/v1",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  withCredentials: true,
+  baseURL: "https://workintech-fe-ecommerce.onrender.com",
+  headers: { "Content-Type": "application/json" },
 });
 
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-
-    if (token && !config.url.includes("/auth")) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (token) {
+      config.headers.Authorization = token;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  },
+  (error) => Promise.reject(error),
 );
+
+export const workintechAxios = axios.create({
+  baseURL: "https://workintech-fe-ecommerce.onrender.com",
+  headers: { "Content-Type": "application/json" },
+});
 
 export default axiosInstance;

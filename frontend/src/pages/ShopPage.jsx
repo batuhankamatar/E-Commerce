@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axiosInstance from "../api/axiosInstance";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchProducts, setFilter } from "../store/reducers/productReducer";
 import ShopBreadcrumb from "../components/shop/ShopBreadcrumb";
 import CategoryBanner from "../components/shop/CategoryBanner";
 import FilterBar from "../components/shop/FilterBar";
@@ -10,68 +11,65 @@ import Pagination from "../components/shop/Pagination";
 import Clients from "../components/home/Clients";
 
 const ShopPage = () => {
-  const { categoryCode } = useParams();
-  const [products, setProducts] = useState([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [currentPage, setCurrentPage] = useState(0);
+  const { gender, categoryName, categoryId } = useParams();
+  const dispatch = useDispatch();
+
+  const { productList, total, loading, filter, offset } = useSelector(
+    (state) => state.product,
+  );
+
   const [view, setView] = useState("grid");
   const [sort, setSort] = useState("popularity");
-  const [loading, setLoading] = useState(true);
+  const currentPage = Math.floor(offset / 25);
 
-  const fetchProducts = (page = 0) => {
-    setLoading(true);
-    const params = new URLSearchParams({
-      sort,
-      page,
-      size: 12,
-      ...(categoryCode && { categoryCode: categoryCode.toUpperCase() }),
-    });
-
-    axiosInstance
-      .get(`/products/shop?${params}`)
-      .then((res) => {
-        setProducts(res.data.products);
-        setTotalCount(res.data.totalCount);
-        setTotalPages(res.data.totalPages);
-        setCurrentPage(res.data.currentPage);
-      })
-      .catch((err) => console.error("Ürünler çekilemedi:", err))
-      .finally(() => setLoading(false));
+  const loadProducts = (page = 0) => {
+    const newOffset = page * 25;
+    dispatch(fetchProducts(categoryId, filter, sort, newOffset));
+    window.scrollTo(0, 0);
   };
 
   useEffect(() => {
-    fetchProducts(0);
-  }, [categoryCode, sort]);
+    loadProducts(0);
+  }, [dispatch, categoryId, sort, filter]);
 
   return (
     <div className="flex flex-col min-h-screen font-['Montserrat']">
-      <ShopBreadcrumb />
+      <ShopBreadcrumb gender={gender} categoryName={categoryName} />
       <CategoryBanner />
+
       <FilterBar
-        totalCount={totalCount}
+        totalCount={total}
         view={view}
         setView={setView}
         sort={sort}
         setSort={setSort}
-        onFilter={() => fetchProducts(0)}
+        onFilter={(val) => {
+          dispatch(setFilter(val));
+        }}
       />
 
-      <div className="w-full bg-white">
+      <div className="w-full bg-white relative min-h-[400px]">
         <div className="w-full max-w-[1124px] mx-auto px-4 lg:px-0 pt-12 pb-12">
-          {loading ? (
-            <div className="flex items-center justify-center h-[400px] text-[#737373]">
-              Loading...
+          {loading && (
+            <div className="absolute inset-0 bg-white/70 z-50 flex flex-col items-center justify-center">
+              <div className="w-12 h-12 border-4 border-[#23A6F0] border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p className="text-[#23A6F0] font-bold">Yükleniyor...</p>
+            </div>
+          )}
+
+          {!loading && productList.length === 0 ? (
+            <div className="text-center py-20 text-[#737373]">
+              Ürün bulunamadı.
             </div>
           ) : view === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[30px]">
-              {products.map((product) => (
+              {productList.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              {products.map((product) => (
+              {productList.map((product) => (
                 <ProductListItem key={product.id} product={product} />
               ))}
             </div>
@@ -79,16 +77,15 @@ const ShopPage = () => {
         </div>
       </div>
 
-      {totalPages > 1 && (
+      {total > 25 && (
         <div className="w-full flex justify-center py-12">
           <Pagination
             currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={(p) => fetchProducts(p)}
+            totalPages={Math.ceil(total / 25)}
+            onPageChange={(p) => loadProducts(p)}
           />
         </div>
       )}
-
       <Clients />
     </div>
   );

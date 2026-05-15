@@ -1,59 +1,81 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { workintechAxios } from "../../api/axiosInstance";
 
 const SignupForm = () => {
-  const [role, setRole] = useState("customer");
+  const [roles, setRoles] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
-  } = useForm();
+  } = useForm({
+    defaultValues: { role_id: "" },
+  });
+
+  const selectedRoleId = watch("role_id");
+  const selectedRole = roles.find(
+    (r) => String(r.id) === String(selectedRoleId),
+  );
+  const isStore =
+    selectedRole?.code === "ROLE_STORE" ||
+    selectedRole?.name?.toLowerCase().includes("store");
+
+  useEffect(() => {
+    workintechAxios
+      .get("/roles")
+      .then((res) => {
+        setRoles(res.data);
+        const customerRole = res.data.find(
+          (r) =>
+            r.code === "ROLE_CUSTOMER" ||
+            r.name?.toLowerCase().includes("customer"),
+        );
+        if (customerRole) {
+          setValue("role_id", String(customerRole.id));
+        }
+      })
+      .catch((err) => console.error("Roller çekilemedi:", err));
+  }, [setValue]);
 
   const onSubmit = async (data) => {
+    setIsSubmitting(true);
+
     const payload = {
       name: data.name,
-      surname: data.surname,
       email: data.email,
       password: data.password,
-      gender: data.gender,
-      birthDate: data.birthDate,
-      type: role.toUpperCase(),
+      role_id: Number(data.role_id),
     };
 
-    if (role === "store") {
-      payload.storeName = data.storeName;
-      payload.taxNo = data.taxNo;
-      payload.bankAccount = data.bankAccount;
+    if (isStore) {
+      payload.store = {
+        name: data.storeName,
+        phone: data.storePhone,
+        tax_no: data.taxNo,
+        bank_account: data.bankAccount,
+      };
     }
 
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/v1/auth/register",
-        payload,
+      await workintechAxios.post("/signup", payload);
+      toast.warning(
+        "You need to click link in email to activate your account!",
       );
-
-      const { token, name, surname } = response.data;
-      localStorage.setItem("token", token);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-      console.log("Kayıt ve Giriş Başarılı:", response.data);
-
-      toast.success(
-        `Welcome ${name} ${surname}! Your account has been created.`,
-      );
-
-      navigate("/profile");
+      navigate(-1);
     } catch (error) {
-      console.error("Kayıt sırasında hata oluştu:", error.response?.data);
-
       const errorMessage =
-        error.response?.data?.message || "Registration failed.";
+        error.response?.data?.message ||
+        "Registration failed. Please try again.";
       toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -66,90 +88,46 @@ const SignupForm = () => {
         Join our community!
       </p>
 
-      <div className="flex mb-10 border-b border-gray-100">
-        <button
-          type="button"
-          onClick={() => setRole("customer")}
-          className={`flex-1 py-4 font-bold transition-all ${
-            role === "customer"
-              ? "text-[#23A6F0] border-b-2 border-[#23A6F0]"
-              : "text-[#737373]"
-          }`}
-        >
-          Customer
-        </button>
-        <button
-          type="button"
-          onClick={() => setRole("store")}
-          className={`flex-1 py-4 font-bold transition-all ${
-            role === "store"
-              ? "text-[#23A6F0] border-b-2 border-[#23A6F0]"
-              : "text-[#737373]"
-          }`}
-        >
-          Store
-        </button>
-      </div>
-
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col gap-2">
-            <label className="text-[#252B42] font-bold text-sm text-left">
-              First Name
-            </label>
-            <input
-              {...register("name", {
-                required: "Name is required",
-                minLength: 3,
-              })}
-              type="text"
-              placeholder="First Name"
-              className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md focus:outline-[#23A6F0]"
-            />
-            {errors.name && (
-              <span className="text-red-500 text-xs text-left">
-                {errors.name.message}
-              </span>
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="text-[#252B42] font-bold text-sm text-left">
-              Last Name
-            </label>
-            <input
-              {...register("surname", {
-                required: "Surname is required",
-                minLength: 3,
-              })}
-              type="text"
-              placeholder="Last Name"
-              className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md focus:outline-[#23A6F0]"
-            />
-            {errors.surname && (
-              <span className="text-red-500 text-xs text-left">
-                {errors.surname.message}
-              </span>
-            )}
-          </div>
+        <div className="flex flex-col gap-2">
+          <label className="text-[#252B42] font-bold text-sm text-left">
+            Name
+          </label>
+          <input
+            {...register("name", {
+              required: "Name is required",
+              minLength: {
+                value: 3,
+                message: "Name must be at least 3 characters",
+              },
+            })}
+            type="text"
+            placeholder="Full Name"
+            className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md focus:outline-[#23A6F0]"
+          />
+          {errors.name && (
+            <span className="text-red-500 text-xs">{errors.name.message}</span>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">
           <label className="text-[#252B42] font-bold text-sm text-left">
-            Email Address
+            Email
           </label>
           <input
             {...register("email", {
               required: "Email is required",
-              pattern: { value: /^\S+@\S+$/i, message: "Invalid email" },
+              pattern: {
+                value: /^\S+@\S+\.\S+$/,
+                message: "Invalid email address",
+              },
             })}
             type="email"
             placeholder="example@mail.com"
             className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md focus:outline-[#23A6F0]"
           />
           {errors.email && (
-            <span className="text-red-500 text-xs text-left">
-              {errors.email.message}
-            </span>
+            <span className="text-red-500 text-xs">{errors.email.message}</span>
           )}
         </div>
 
@@ -160,14 +138,23 @@ const SignupForm = () => {
           <input
             {...register("password", {
               required: "Password is required",
-              minLength: 8,
+              minLength: {
+                value: 8,
+                message: "Password must be at least 8 characters",
+              },
+              pattern: {
+                value:
+                  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/,
+                message:
+                  "Must include uppercase, lowercase, number and special character",
+              },
             })}
             type="password"
-            placeholder="Min 8 characters"
+            placeholder="Min 8 chars, upper/lower/number/special"
             className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md focus:outline-[#23A6F0]"
           />
           {errors.password && (
-            <span className="text-red-500 text-xs text-left">
+            <span className="text-red-500 text-xs">
               {errors.password.message}
             </span>
           )}
@@ -179,59 +166,47 @@ const SignupForm = () => {
           </label>
           <input
             {...register("confirmPassword", {
-              required: "Confirm your password",
-              validate: (val, values) =>
-                val === values.password || "Passwords do not match",
+              required: "Please confirm your password",
+              validate: (val) =>
+                val === watch("password") || "Passwords do not match",
             })}
             type="password"
             placeholder="Re-enter password"
             className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md focus:outline-[#23A6F0]"
           />
           {errors.confirmPassword && (
-            <span className="text-red-500 text-xs text-left">
+            <span className="text-red-500 text-xs">
               {errors.confirmPassword.message}
             </span>
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col gap-2">
-            <label className="text-[#252B42] font-bold text-sm text-left">
-              Gender
-            </label>
-            <select
-              {...register("gender", { required: "Gender is required" })}
-              className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md focus:outline-[#23A6F0]"
-            >
-              <option value="">Select Gender</option>
-              <option value="MALE">Male</option>
-              <option value="FEMALE">Female</option>
-            </select>
-            {errors.gender && (
-              <span className="text-red-500 text-xs text-left">
-                {errors.gender.message}
-              </span>
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="text-[#252B42] font-bold text-sm text-left">
-              Birth Date
-            </label>
-            <input
-              {...register("birthDate", { required: "Birth date is required" })}
-              type="date"
-              className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md focus:outline-[#23A6F0]"
-            />
-            {errors.birthDate && (
-              <span className="text-red-500 text-xs text-left">
-                {errors.birthDate.message}
-              </span>
-            )}
-          </div>
+        <div className="flex flex-col gap-2">
+          <label className="text-[#252B42] font-bold text-sm text-left">
+            Role
+          </label>
+          <select
+            {...register("role_id", { required: "Please select a role" })}
+            className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md focus:outline-[#23A6F0]"
+          >
+            <option value="">Select a role</option>
+            {roles.map((role) => (
+              <option key={role.id} value={role.id}>
+                {role.name || role.code}
+              </option>
+            ))}
+          </select>
+          {errors.role_id && (
+            <span className="text-red-500 text-xs">
+              {errors.role_id.message}
+            </span>
+          )}
         </div>
 
-        {role === "store" && (
-          <div className="flex flex-col gap-5 animate-fadeIn">
+        {isStore && (
+          <div className="flex flex-col gap-5 border-t border-gray-100 pt-5">
+            <h3 className="font-bold text-[#252B42]">Store Information</h3>
+
             <div className="flex flex-col gap-2">
               <label className="text-[#252B42] font-bold text-sm text-left">
                 Store Name
@@ -239,45 +214,87 @@ const SignupForm = () => {
               <input
                 {...register("storeName", {
                   required: "Store name is required",
+                  minLength: {
+                    value: 3,
+                    message: "Store name must be at least 3 characters",
+                  },
                 })}
                 type="text"
                 placeholder="Store Name"
-                className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md"
+                className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md focus:outline-[#23A6F0]"
               />
               {errors.storeName && (
-                <span className="text-red-500 text-xs text-left">
+                <span className="text-red-500 text-xs">
                   {errors.storeName.message}
                 </span>
               )}
             </div>
+
             <div className="flex flex-col gap-2">
               <label className="text-[#252B42] font-bold text-sm text-left">
-                Store Tax ID
+                Store Phone
               </label>
               <input
-                {...register("taxNo", { required: "Tax No is required" })}
+                {...register("storePhone", {
+                  required: "Phone is required",
+                  pattern: {
+                    value: /^(\+90|0)?[0-9]{10}$/,
+                    message: "Please enter a valid Turkish phone number",
+                  },
+                })}
+                type="tel"
+                placeholder="+90 5XX XXX XX XX"
+                className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md focus:outline-[#23A6F0]"
+              />
+              {errors.storePhone && (
+                <span className="text-red-500 text-xs">
+                  {errors.storePhone.message}
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[#252B42] font-bold text-sm text-left">
+                Tax ID
+              </label>
+              <input
+                {...register("taxNo", {
+                  required: "Tax ID is required",
+                  pattern: {
+                    value: /^T\d{4}V\d{6}$/,
+                    message: "Tax ID must match pattern TXXXXVXXXXXX",
+                  },
+                })}
                 type="text"
-                placeholder="Tax No"
-                className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md"
+                placeholder="TXXXXVXXXXXX"
+                className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md focus:outline-[#23A6F0]"
               />
               {errors.taxNo && (
-                <span className="text-red-500 text-xs text-left">
+                <span className="text-red-500 text-xs">
                   {errors.taxNo.message}
                 </span>
               )}
             </div>
+
             <div className="flex flex-col gap-2">
               <label className="text-[#252B42] font-bold text-sm text-left">
-                Store IBAN
+                Bank Account (IBAN)
               </label>
               <input
-                {...register("bankAccount", { required: "IBAN is required" })}
+                {...register("bankAccount", {
+                  required: "IBAN is required",
+                  pattern: {
+                    value: /^TR\d{24}$/,
+                    message:
+                      "Please enter a valid Turkish IBAN (TR + 24 digits)",
+                  },
+                })}
                 type="text"
-                placeholder="TR..."
-                className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md"
+                placeholder="TR000000000000000000000000"
+                className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md focus:outline-[#23A6F0]"
               />
               {errors.bankAccount && (
-                <span className="text-red-500 text-xs text-left">
+                <span className="text-red-500 text-xs">
                   {errors.bankAccount.message}
                 </span>
               )}
@@ -287,9 +304,36 @@ const SignupForm = () => {
 
         <button
           type="submit"
-          className="bg-[#23A6F0] text-white py-4 rounded-md font-bold text-lg mt-4 shadow-md hover:bg-[#1a8ccf] transition-all active:scale-95"
+          disabled={isSubmitting}
+          className="bg-[#23A6F0] text-white py-4 rounded-md font-bold text-lg mt-4 shadow-md hover:bg-[#1a8ccf] transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3"
         >
-          Sign Up
+          {isSubmitting ? (
+            <>
+              <svg
+                className="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8H4z"
+                />
+              </svg>
+              Signing Up...
+            </>
+          ) : (
+            "Sign Up"
+          )}
         </button>
       </form>
     </div>

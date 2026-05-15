@@ -2,13 +2,14 @@ import React, { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import StarRating from "./StarRating";
 
-const ProductTabs = ({ product, reviews }) => {
+const ProductTabs = ({ product, reviews = [] }) => {
   const [activeTab, setActiveTab] = useState("description");
 
-  const getImageUrl = (img) => {
-    if (!img) return null;
-    if (img.startsWith("http")) return img;
-    return new URL(`/src/assets/products/${img}`, import.meta.url).href;
+  const getImageUrl = (product) => {
+    if (product?.images && product.images.length > 0) {
+      return product.images[0].url || product.images[0];
+    }
+    return "https://via.placeholder.com/400x400?text=No+Image";
   };
 
   return (
@@ -28,7 +29,7 @@ const ProductTabs = ({ product, reviews }) => {
             >
               {tab === "description" && "Description"}
               {tab === "additional" && "Additional Information"}
-              {tab === "reviews" && `Reviews (${reviews.length})`}
+              {tab === "reviews" && `Reviews (${reviews?.length || 0})`}
             </button>
           ))}
         </div>
@@ -37,10 +38,10 @@ const ProductTabs = ({ product, reviews }) => {
       <div className="w-full max-w-[1050px] mx-auto px-4 lg:px-0 py-12">
         {activeTab === "description" && (
           <div className="flex flex-col lg:flex-row gap-[50px]">
-            <div className="w-full lg:w-[332px] h-[392px] flex-shrink-0 overflow-hidden rounded">
+            <div className="w-full lg:w-[332px] h-[392px] flex-shrink-0 overflow-hidden rounded bg-[#F3F3F3]">
               <img
-                src={getImageUrl(product.mainImage)}
-                alt={product.name}
+                src={getImageUrl(product)}
+                alt={product?.name}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -49,17 +50,11 @@ const ProductTabs = ({ product, reviews }) => {
                 the quick fox jumps over
               </h3>
               <p className="font-normal text-[14px] leading-5 text-[#737373]">
-                {product.description}
+                {product?.description}
               </p>
               <p className="font-normal text-[14px] leading-5 text-[#737373]">
                 Met minim Mollie non desert Alamo est sit cliquey dolor do met
                 sent. RELIT official consequent door ENIM RELIT Mollie.
-                Excitation venial consequent sent nostrum met.
-              </p>
-              <p className="font-normal text-[14px] leading-5 text-[#737373]">
-                Met minim Mollie non desert Alamo est sit cliquey dolor do met
-                sent. RELIT official consequent door ENIM RELIT Mollie.
-                Excitation venial consequent sent nostrum met.
               </p>
             </div>
             <div className="flex flex-col gap-6 w-full lg:w-[332px]">
@@ -88,10 +83,10 @@ const ProductTabs = ({ product, reviews }) => {
         {activeTab === "additional" && (
           <div className="flex flex-col gap-4">
             {[
-              { label: "Category", value: product.categoryName },
-              { label: "Stock", value: product.stock },
-              { label: "Rating", value: `${product.rating?.toFixed(1)} / 5` },
-              { label: "Store", value: product.storeName },
+              { label: "Category ID", value: product?.category_id },
+              { label: "Stock", value: product?.stock },
+              { label: "Rating", value: `${product?.rating?.toFixed(1)} / 5` },
+              { label: "Store ID", value: product?.store_id },
             ].map((item) => (
               <div
                 key={item.label}
@@ -110,7 +105,7 @@ const ProductTabs = ({ product, reviews }) => {
 
         {activeTab === "reviews" && (
           <div className="flex flex-col gap-6">
-            {reviews.length === 0 ? (
+            {!reviews || reviews.length === 0 ? (
               <p className="font-normal text-[14px] text-[#737373] text-center py-8">
                 No reviews yet. Be the first to review!
               </p>
@@ -122,7 +117,7 @@ const ProductTabs = ({ product, reviews }) => {
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-[14px] text-[#252B42]">
-                      {review.userName}
+                      {review.userName || "Anonymous"}
                     </span>
                     <span className="font-normal text-[12px] text-[#737373]">
                       {review.date}
