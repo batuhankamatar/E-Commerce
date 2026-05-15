@@ -21,15 +21,18 @@ const ShopPage = () => {
 
   const [view, setView] = useState("grid");
   const [sort, setSort] = useState("popularity");
-  const currentPage = Math.floor(offset / 25);
+
+  const LIMIT = 12;
+  const currentPage = Math.floor(offset / LIMIT);
 
   const loadProducts = (page = 0) => {
-    const newOffset = page * 25;
+    const newOffset = page * LIMIT;
     dispatch(
       fetchProducts({
         category: categoryId,
         filter: filter,
         sort: sort,
+        limit: LIMIT,
         offset: newOffset,
       }),
     );
@@ -85,15 +88,16 @@ const ShopPage = () => {
         </div>
       </div>
 
-      {total > 25 && (
+      {total > LIMIT && (
         <div className="w-full flex justify-center py-12">
           <Pagination
             currentPage={currentPage}
-            totalPages={Math.ceil(total / 25)}
+            totalPages={Math.ceil(total / LIMIT)}
             onPageChange={(p) => loadProducts(p)}
           />
         </div>
       )}
+
       <Clients />
     </div>
   );

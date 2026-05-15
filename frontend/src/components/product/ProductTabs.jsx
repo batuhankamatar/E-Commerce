@@ -6,11 +6,25 @@ const ProductTabs = ({ product, reviews = [] }) => {
   const [activeTab, setActiveTab] = useState("description");
 
   const getImageUrl = (product) => {
-    if (product?.images && product.images.length > 0) {
-      return product.images[0].url || product.images[0];
+    const images = product?.images || [];
+    if (images.length > 0) {
+      const imgPath = images[0].imgUrl || images[0].url || images[0];
+
+      if (typeof imgPath === "string" && imgPath.startsWith("http")) {
+        return imgPath;
+      }
+
+      try {
+        return new URL(`/src/assets/products/${imgPath}`, import.meta.url).href;
+      } catch (e) {
+        console.error("Tabs görsel hatası:", e);
+        return null;
+      }
     }
-    return "https://via.placeholder.com/400x400?text=No+Image";
+    return null;
   };
+
+  const imgUrl = getImageUrl(product);
 
   return (
     <div className="w-full border-t border-[#ECECEC]">
@@ -38,16 +52,22 @@ const ProductTabs = ({ product, reviews = [] }) => {
       <div className="w-full max-w-[1050px] mx-auto px-4 lg:px-0 py-12">
         {activeTab === "description" && (
           <div className="flex flex-col lg:flex-row gap-[50px]">
-            <div className="w-full lg:w-[332px] h-[392px] flex-shrink-0 overflow-hidden rounded bg-[#F3F3F3]">
-              <img
-                src={getImageUrl(product)}
-                alt={product?.name}
-                className="w-full h-full object-cover"
-              />
+            <div className="w-full lg:w-[332px] h-[392px] flex-shrink-0 overflow-hidden rounded bg-[#F3F3F3] flex items-center justify-center">
+              {imgUrl ? (
+                <img
+                  src={imgUrl}
+                  alt={product?.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-[#737373] italic">
+                  No Image Available
+                </span>
+              )}
             </div>
             <div className="flex flex-col gap-4 w-full lg:w-[332px]">
               <h3 className="font-bold text-[24px] leading-8 text-[#252B42]">
-                the quick fox jumps over
+                Product Description
               </h3>
               <p className="font-normal text-[14px] leading-5 text-[#737373]">
                 {product?.description}
@@ -59,8 +79,8 @@ const ProductTabs = ({ product, reviews = [] }) => {
             </div>
             <div className="flex flex-col gap-6 w-full lg:w-[332px]">
               {[
-                { title: "the quick fox jumps over", count: 4 },
-                { title: "the quick fox jumps over", count: 3 },
+                { title: "Key Features", count: 4 },
+                { title: "Care Instructions", count: 3 },
               ].map((section, si) => (
                 <div key={si}>
                   <h3 className="font-bold text-[24px] leading-8 text-[#252B42] mb-3">

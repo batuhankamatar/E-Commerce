@@ -10,7 +10,8 @@ import Clients from "../components/home/Clients";
 import { ChevronLeft } from "lucide-react";
 
 const ProductPage = () => {
-  const { id } = useParams();
+  const { productId, id: backupId } = useParams();
+  const id = productId || backupId;
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -19,30 +20,50 @@ const ProductPage = () => {
   );
 
   useEffect(() => {
-    dispatch(fetchProductDetail(id));
+    if (id) {
+      dispatch(fetchProductDetail(id));
+    }
     window.scrollTo(0, 0);
   }, [dispatch, id]);
 
   const getImageUrl = (img) => {
-    if (!img) return "https://via.placeholder.com/500x600?text=No+Image";
-    if (typeof img === "string" && img.startsWith("http")) return img;
-    if (img.url) return img.url;
-    return "https://via.placeholder.com/500x600?text=No+Image";
+    const imgPath =
+      img?.imgUrl ||
+      img?.url ||
+      img?.img ||
+      (typeof img === "string" ? img : null);
+
+    if (!imgPath) return null;
+
+    if (typeof imgPath === "string" && imgPath.startsWith("http")) {
+      return imgPath;
+    }
+
+    try {
+      return new URL(`../assets/products/${imgPath}`, import.meta.url).href;
+    } catch (e) {
+      console.error("Görsel yükleme hatası:", e);
+      return null;
+    }
   };
 
   if (loading)
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center justify-center min-h-[600px]">
         <div className="w-12 h-12 border-4 border-[#23A6F0] border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-[#23A6F0] font-bold font-['Montserrat']">
-          Loading Details...
-        </p>
+        <p className="text-[#23A6F0] font-bold">Loading Details...</p>
       </div>
     );
 
   if (!product || !product.id) return null;
 
-  const images = product.images || [];
+  const normalizedProduct = {
+    ...product,
+    images:
+      product?.imageUrls?.map((url) => ({ imgUrl: url })) ||
+      product?.images ||
+      [],
+  };
 
   return (
     <div className="flex flex-col font-['Montserrat'] bg-white">
@@ -68,12 +89,18 @@ const ProductPage = () => {
 
       <div className="w-full py-8 lg:py-12 px-4 lg:px-0">
         <div className="w-full max-w-[1050px] mx-auto flex flex-col lg:flex-row gap-[30px]">
-          <ProductImageGallery images={images} getImageUrl={getImageUrl} />
-          <ProductInfo product={product} />
+          <ProductImageGallery
+            images={normalizedProduct.images}
+            getImageUrl={getImageUrl}
+          />
+          <ProductInfo product={normalizedProduct} />
         </div>
       </div>
 
-      <ProductTabs product={product} reviews={product.reviews || []} />
+      <ProductTabs
+        product={normalizedProduct}
+        reviews={product.reviews || []}
+      />
       <BestsellerSimple limit={8} />
       <Clients />
     </div>
