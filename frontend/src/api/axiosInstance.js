@@ -1,8 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "https://workintech-fe-ecommerce.onrender.com",
-  headers: { "Content-Type": "application/json" },
+  baseURL: "http://localhost:8080/api/v1",
 });
 
 axiosInstance.interceptors.request.use(
@@ -15,10 +14,5 @@ axiosInstance.interceptors.request.use(
   },
   (error) => Promise.reject(error),
 );
-
-export const workintechAxios = axios.create({
-  baseURL: "https://workintech-fe-ecommerce.onrender.com",
-  headers: { "Content-Type": "application/json" },
-});
 
 export default axiosInstance;

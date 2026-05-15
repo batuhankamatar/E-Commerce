@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { workintechAxios } from "../../api/axiosInstance";
+import axiosInstance from "../../api/axiosInstance";
 
 const SignupForm = () => {
   const [roles, setRoles] = useState([]);
@@ -16,59 +16,75 @@ const SignupForm = () => {
     setValue,
     formState: { errors },
   } = useForm({
-    defaultValues: { role_id: "" },
+    defaultValues: { role_id: "", gender: "", birthDate: "" },
   });
 
   const selectedRoleId = watch("role_id");
   const selectedRole = roles.find(
     (r) => String(r.id) === String(selectedRoleId),
   );
+
   const isStore =
-    selectedRole?.code === "ROLE_STORE" ||
+    selectedRole?.authority === "ROLE_STORE" ||
     selectedRole?.name?.toLowerCase().includes("store");
 
+  // Rol isimlerini güzelleştiren yardımcı fonksiyon
+  const formatRoleName = (role) => {
+    const rawName = role.authority || role.name || "";
+    // ROLE_ kısmını at, hepsini küçült, sadece ilk harfi büyüt
+    return rawName
+      .replace("ROLE_", "")
+      .toLowerCase()
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   useEffect(() => {
-    workintechAxios
+    axiosInstance
       .get("/roles")
       .then((res) => {
         setRoles(res.data);
         const customerRole = res.data.find(
           (r) =>
-            r.code === "ROLE_CUSTOMER" ||
+            r.authority === "ROLE_CUSTOMER" ||
             r.name?.toLowerCase().includes("customer"),
         );
         if (customerRole) {
           setValue("role_id", String(customerRole.id));
         }
       })
-      .catch((err) => console.error("Roller çekilemedi:", err));
+      .catch((err) =>
+        console.error("Kendi backendinden roller çekilemedi:", err),
+      );
   }, [setValue]);
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
 
     const payload = {
-      name: data.name,
+      name: data.name.trim(),
+      surname: data.surname.trim(),
       email: data.email,
       password: data.password,
-      role_id: Number(data.role_id),
+      roleId: Number(data.role_id),
+      gender: data.gender,
+      birthDate: data.birthDate,
     };
 
     if (isStore) {
       payload.store = {
-        name: data.storeName,
+        storeName: data.storeName,
         phone: data.storePhone,
-        tax_no: data.taxNo,
-        bank_account: data.bankAccount,
+        taxNo: data.taxNo,
+        bankAccount: data.bankAccount,
       };
     }
 
     try {
-      await workintechAxios.post("/signup", payload);
-      toast.warning(
-        "You need to click link in email to activate your account!",
-      );
-      navigate(-1);
+      await axiosInstance.post("/auth/register", payload);
+      toast.success("Account created successfully!");
+      navigate("/login");
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||
@@ -102,11 +118,34 @@ const SignupForm = () => {
               },
             })}
             type="text"
-            placeholder="Full Name"
+            placeholder="Your Name"
             className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md focus:outline-[#23A6F0]"
           />
           {errors.name && (
             <span className="text-red-500 text-xs">{errors.name.message}</span>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label className="text-[#252B42] font-bold text-sm text-left">
+            Surname
+          </label>
+          <input
+            {...register("surname", {
+              required: "Surname is required",
+              minLength: {
+                value: 3,
+                message: "Surname must be at least 3 characters",
+              },
+            })}
+            type="text"
+            placeholder="Your Surname"
+            className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md focus:outline-[#23A6F0]"
+          />
+          {errors.surname && (
+            <span className="text-red-500 text-xs">
+              {errors.surname.message}
+            </span>
           )}
         </div>
 
@@ -183,6 +222,42 @@ const SignupForm = () => {
 
         <div className="flex flex-col gap-2">
           <label className="text-[#252B42] font-bold text-sm text-left">
+            Gender
+          </label>
+          <select
+            {...register("gender", { required: "Gender is required" })}
+            className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md focus:outline-[#23A6F0]"
+          >
+            <option value="">Select Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+          {errors.gender && (
+            <span className="text-red-500 text-xs">
+              {errors.gender.message}
+            </span>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label className="text-[#252B42] font-bold text-sm text-left">
+            Birth Date
+          </label>
+          <input
+            {...register("birthDate", { required: "Birth date is required" })}
+            type="date"
+            className="p-4 bg-[#F9F9F9] border border-[#E6E6E6] rounded-md focus:outline-[#23A6F0] text-[#737373]"
+          />
+          {errors.birthDate && (
+            <span className="text-red-500 text-xs">
+              {errors.birthDate.message}
+            </span>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label className="text-[#252B42] font-bold text-sm text-left">
             Role
           </label>
           <select
@@ -192,7 +267,7 @@ const SignupForm = () => {
             <option value="">Select a role</option>
             {roles.map((role) => (
               <option key={role.id} value={role.id}>
-                {role.name || role.code}
+                {formatRoleName(role)}
               </option>
             ))}
           </select>

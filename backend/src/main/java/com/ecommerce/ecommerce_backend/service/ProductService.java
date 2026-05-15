@@ -17,5 +17,6 @@ public interface ProductService {
     void updateProductImage(Long id, String fileName);
     List<BestsellerProductResponse> findTop6ByCategoryId(Long categoryId);
     ProductResponse findMostPopular();
-    ShopResponse findShopProducts(String categoryCode, String sort, Double minPrice, Double maxPrice, int page, int size);
+    ShopResponse findShopProducts(String category, String filter, String sort, int page, int limit);
+    List<ProductResponse> getDailyDeals();
 }

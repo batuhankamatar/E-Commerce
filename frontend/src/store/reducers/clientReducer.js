@@ -1,3 +1,4 @@
+import axiosInstance from "../../api/axiosInstance";
 import { loginSuccess } from "./authReducer";
 
 const initialState = {
@@ -24,8 +25,7 @@ export const setLanguage = (language) => ({
 
 export const loginUser = (credentials, rememberMe) => async (dispatch) => {
   try {
-    const { default: axiosInstance } = await import("../../api/axiosInstance");
-    const response = await axiosInstance.post("/login", credentials);
+    const response = await axiosInstance.post("/auth/login", credentials);
     const userData = response.data;
 
     dispatch(setUser(userData));
@@ -51,9 +51,7 @@ export const verifyToken = () => async (dispatch) => {
   if (!token) return;
 
   try {
-    const { default: axiosInstance } = await import("../../api/axiosInstance");
-
-    const response = await axiosInstance.get("/verify");
+    const response = await axiosInstance.get("/auth/verify");
     const userData = response.data;
 
     dispatch(setUser(userData));
@@ -71,9 +69,8 @@ export const fetchRoles = () => async (dispatch, getState) => {
   const { roles } = getState().client;
   if (roles.length > 0) return;
   try {
-    const { workintechAxios } = await import("../../api/axiosInstance");
-    const response = await workintechAxios.get("/roles");
-    dispatch(setRoles(response.data));
+    const response = await axiosInstance.get("/roles");
+    dispatch(setRoles(res.data));
   } catch (error) {
     console.error("Roles çekilemedi:", error);
   }

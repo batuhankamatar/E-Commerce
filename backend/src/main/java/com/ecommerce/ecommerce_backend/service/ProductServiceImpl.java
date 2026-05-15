@@ -1,20 +1,13 @@
 package com.ecommerce.ecommerce_backend.service;
 
-import com.ecommerce.ecommerce_backend.dto.BestsellerProductResponse;
-import com.ecommerce.ecommerce_backend.dto.ProductResponse;
-import com.ecommerce.ecommerce_backend.dto.ShopResponse;
-import com.ecommerce.ecommerce_backend.entity.Category;
-import com.ecommerce.ecommerce_backend.entity.Product;
-import com.ecommerce.ecommerce_backend.entity.ProductImage;
-import com.ecommerce.ecommerce_backend.entity.Store;
+import com.ecommerce.ecommerce_backend.dto.*;
+import com.ecommerce.ecommerce_backend.entity.*;
 import com.ecommerce.ecommerce_backend.exception.ProductException;
 import com.ecommerce.ecommerce_backend.repository.ProductImageRepository;
 import com.ecommerce.ecommerce_backend.repository.ProductRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import com.ecommerce.ecommerce_backend.dto.ProductRequest;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,9 +22,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductResponse> findAll() {
-        return productRepository.findAll().stream()
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
+        return productRepository.findAll().stream().map(this::convertToResponse).collect(Collectors.toList());
     }
 
     @Override
@@ -41,151 +32,105 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product findEntityById(Long id) {
-        return productRepository.findById(id)
-                .orElseThrow(() -> new ProductException("Ürün bulunamadı! ID: " + id, HttpStatus.NOT_FOUND));
+        return productRepository.findById(id).orElseThrow(() -> new ProductException("Ürün bulunamadı!", HttpStatus.NOT_FOUND));
     }
 
     @Override
     public ProductResponse save(Product product, Long categoryId, Long storeId) {
-        Category category = categoryService.findEntityById(categoryId);
-        Store store = storeService.findEntityById(storeId);
-
-        product.setCategory(category);
-        product.setStore(store);
-
+        product.setCategory(categoryService.findEntityById(categoryId));
+        product.setStore(storeService.findEntityById(storeId));
         return convertToResponse(productRepository.save(product));
     }
 
     @Override
     public ProductResponse update(Long id, ProductRequest request, Long storeId) {
-        Product existingProduct = findEntityById(id);
-
-        if (!existingProduct.getStore().getId().equals(storeId)) {
-            throw new ProductException("Bu ürünü güncelleme yetkiniz yok!", HttpStatus.FORBIDDEN);
-        }
-
-        existingProduct.setName(request.getName());
-        existingProduct.setDescription(request.getDescription());
-        existingProduct.setPrice(request.getPrice());
-        existingProduct.setDiscountPrice(request.getDiscountPrice());
-        existingProduct.setStock(request.getStock());
-        existingProduct.setImg(request.getMainImage());
-
-        if (request.getCategoryId() != null) {
-            Category newCategory = categoryService.findEntityById(request.getCategoryId());
-            existingProduct.setCategory(newCategory);
-        }
-
-        return convertToResponse(productRepository.save(existingProduct));
+        Product p = findEntityById(id);
+        p.setName(request.getName());
+        return convertToResponse(productRepository.save(p));
     }
 
     @Override
     public void delete(Long id) {
-        Product product = findEntityById(id);
-        productRepository.delete(product);
-    }
-
-    private ProductResponse convertToResponse(Product product) {
-        ProductResponse response = new ProductResponse();
-        response.setId(product.getId());
-        response.setName(product.getName());
-        response.setDescription(product.getDescription());
-        response.setPrice(product.getPrice());
-        response.setDiscountPrice(product.getDiscountPrice());
-        response.setStock(product.getStock());
-        response.setSellCount(product.getSellCount());
-        response.setRating(product.getRating());
-
-        response.setReviewCount(product.getReviews() != null ? product.getReviews().size() : 0);
-
-        if (product.getImages() != null && !product.getImages().isEmpty()) {
-            String mainImg = product.getImages().stream()
-                    .filter(img -> img.getDisplayOrder() == 1)
-                    .map(ProductImage::getImg)
-                    .findFirst()
-                    .orElse(product.getImages().get(0).getImg());
-
-            response.setMainImage(mainImg);
-
-            response.setImageUrls(product.getImages().stream()
-                    .map(ProductImage::getImg)
-                    .collect(Collectors.toList()));
-        }
-
-        if (product.getCategory() != null) {
-            response.setCategoryId(product.getCategory().getId());
-            response.setCategoryName(product.getCategory().getTitle());
-        }
-
-        if (product.getStore() != null) {
-            response.setStoreId(product.getStore().getId());
-            response.setStoreName(product.getStore().getStoreName());
-        }
-
-        return response;
+        productRepository.delete(findEntityById(id));
     }
 
     @Override
     public void updateProductImage(Long id, String fileName) {
-        Product product = findEntityById(id);
-
-        if (product.getImages() != null) {
-            product.getImages().forEach(img -> img.setDisplayOrder(img.getDisplayOrder() + 1));
-            productImageRepository.saveAll(product.getImages());
-        }
-
-        ProductImage newImage = new ProductImage();
-        newImage.setImg(fileName);
-        newImage.setProduct(product);
-        newImage.setDisplayOrder(1);
-        productImageRepository.save(newImage);
+        Product p = findEntityById(id);
+        ProductImage pi = new ProductImage();
+        pi.setImg(fileName);
+        pi.setProduct(p);
+        productImageRepository.save(pi);
     }
 
     @Override
     public List<BestsellerProductResponse> findTop6ByCategoryId(Long categoryId) {
-        return productRepository.findTop6ByCategoryOrderBySellCount(categoryId)
-                .stream()
-                .map(this::convertToBestsellerResponse)
-                .collect(Collectors.toList());
+        return productRepository.findTop6ByCategoryOrderBySellCount(categoryId).stream()
+                .map(this::convertToBestsellerResponse).collect(Collectors.toList());
     }
 
-    private BestsellerProductResponse convertToBestsellerResponse(Product product) {
-        BestsellerProductResponse response = new BestsellerProductResponse();
-        response.setId(product.getId());
-        response.setName(product.getName());
-        response.setPrice(product.getPrice());
-        response.setDiscountPrice(product.getDiscountPrice());
-        response.setGender(product.getGender());
-
-        if (product.getImages() != null && !product.getImages().isEmpty()) {
-            String mainImg = product.getImages().stream()
-                    .filter(img -> img.getDisplayOrder() == 1)
-                    .map(ProductImage::getImg)
-                    .findFirst()
-                    .orElse(product.getImages().get(0).getImg());
-
-            response.setMainImage(mainImg);
-        }
-        return response;
+    @Override
+    public List<ProductResponse> getDailyDeals() {
+        return productRepository.findDailyDeals().stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
     public ProductResponse findMostPopular() {
-        Product product = productRepository.findMostPopular();
-        if (product == null) {
-            throw new ProductException("En popüler ürün bulunamadı!", HttpStatus.NOT_FOUND);
-        }
-        return convertToResponse(product);
+        Product p = productRepository.findMostPopular();
+        if(p == null) throw new ProductException("Popüler ürün yok!", HttpStatus.NOT_FOUND);
+        return convertToResponse(p);
     }
 
     @Override
-    public ShopResponse findShopProducts(String categoryCode, String sort, Double minPrice, Double maxPrice, int page, int size) {
-        int offset = page * size;
+    public ShopResponse findShopProducts(String category, String filter, String sort, int offset, int limit) {
+        String finalCategory = (category != null && !category.isEmpty()) ? category : null;
+        String finalFilter = (filter != null && !filter.isEmpty()) ? filter : null;
+        String finalSort = (sort != null && !sort.isEmpty()) ? sort : null;
+
         List<ProductResponse> products = productRepository
-                .findShopProducts(categoryCode, sort, minPrice, maxPrice, size, offset)
+                .findShopProductsV2(finalCategory, finalFilter, finalSort, limit, offset)
                 .stream().map(this::convertToResponse).collect(Collectors.toList());
-        long totalCount = productRepository.countShopProducts(categoryCode, minPrice, maxPrice);
-        int totalPages = (int) Math.ceil((double) totalCount / size);
-        return new ShopResponse(products, totalCount, totalPages, page);
+
+        long totalCount = productRepository.countShopProductsV2(finalCategory, finalFilter);
+        int totalPages = (int) Math.ceil((double) totalCount / limit);
+        int currentPage = offset / limit;
+
+        return new ShopResponse(products, totalCount, totalPages, currentPage);
+    }
+
+    private ProductResponse convertToResponse(Product product) {
+        ProductResponse res = new ProductResponse();
+        res.setId(product.getId());
+        res.setName(product.getName());
+        res.setDescription(product.getDescription());
+        res.setPrice(product.getPrice());
+        res.setDiscountPrice(product.getDiscountPrice());
+        res.setRating(product.getRating());
+        res.setSellCount(product.getSellCount());
+        res.setStock(product.getStock());
+
+        if (product.getCategory() != null) {
+            res.setCategoryId(product.getCategory().getId());
+            res.setCategoryName(product.getCategory().getTitle());
+        }
+        if (product.getImages() != null && !product.getImages().isEmpty()) {
+            res.setMainImage(product.getImages().get(0).getImg());
+            res.setImageUrls(product.getImages().stream().map(ProductImage::getImg).collect(Collectors.toList()));
+        }
+        return res;
+    }
+
+    private BestsellerProductResponse convertToBestsellerResponse(Product product) {
+        BestsellerProductResponse b = new BestsellerProductResponse();
+        b.setId(product.getId());
+        b.setName(product.getName());
+        b.setPrice(product.getPrice());
+        b.setDiscountPrice(product.getDiscountPrice());
+        if (product.getImages() != null && !product.getImages().isEmpty()) {
+            b.setMainImage(product.getImages().get(0).getImg());
+        }
+        return b;
     }
 }
