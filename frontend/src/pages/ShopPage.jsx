@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProducts, setFilter } from "../store/reducers/productReducer";
+import { fetchProducts } from "../store/actions/productActions";
+import { setFilter } from "../store/reducers/productReducer";
 import ShopBreadcrumb from "../components/shop/ShopBreadcrumb";
 import CategoryBanner from "../components/shop/CategoryBanner";
 import FilterBar from "../components/shop/FilterBar";
@@ -24,7 +25,14 @@ const ShopPage = () => {
 
   const loadProducts = (page = 0) => {
     const newOffset = page * 25;
-    dispatch(fetchProducts(categoryId, filter, sort, newOffset));
+    dispatch(
+      fetchProducts({
+        category: categoryId,
+        filter: filter,
+        sort: sort,
+        offset: newOffset,
+      }),
+    );
     window.scrollTo(0, 0);
   };
 

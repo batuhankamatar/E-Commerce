@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchDailyDeals } from "../../store/reducers/productReducer";
+import { fetchDailyDeals } from "../../store/actions/productActions";
 import { useNavigate } from "react-router-dom";
 
 const DailyDeals = () => {
@@ -16,7 +16,8 @@ const DailyDeals = () => {
 
   const handleDealClick = (deal) => {
     const gender = deal.gender
-      ? deal.gender === "k"
+      ? deal.gender.toLowerCase() === "k" ||
+        deal.gender.toLowerCase() === "female"
         ? "kadin"
         : "erkek"
       : "unisex";
@@ -29,7 +30,7 @@ const DailyDeals = () => {
 
     const categoryId = deal.category_id || deal.categoryId || 0;
 
-    const nameSlug = deal.name
+    const nameSlug = (deal.name || "")
       .toLowerCase()
       .trim()
       .replaceAll(" ", "-")
@@ -44,17 +45,30 @@ const DailyDeals = () => {
   if (loading && dailyDeals.length === 0) {
     return (
       <div className="text-center py-10 text-gray-500 font-['Montserrat']">
+        <div className="w-12 h-12 border-4 border-[#23A6F0] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
         Loading Daily Deals...
       </div>
     );
   }
 
-  const getImageUrl = (images) => {
-    if (!images) return "https://via.placeholder.com/300x300?text=No+Image";
-    if (Array.isArray(images) && images.length > 0)
-      return images[0].url || images[0];
-    if (typeof images === "string") return images;
-    return "https://via.placeholder.com/300x300?text=No+Image";
+  const getImageUrl = (deal) => {
+    const imgPath =
+      deal.mainImage ||
+      (deal.images && deal.images.length > 0
+        ? deal.images[0].url || deal.images[0]
+        : null);
+
+    if (!imgPath) return "https://via.placeholder.com/300x300?text=No+Image";
+
+    if (typeof imgPath === "string" && imgPath.startsWith("http")) {
+      return imgPath;
+    }
+
+    try {
+      return new URL(`/src/assets/products/${imgPath}`, import.meta.url).href;
+    } catch (e) {
+      return "https://via.placeholder.com/300x300?text=Image+Not+Found";
+    }
   };
 
   return (
@@ -71,7 +85,7 @@ const DailyDeals = () => {
                 <span className="text-[#737373] font-bold text-[14px]">
                   Ends Today
                 </span>
-                <h3 className="text-[#252B42] font-bold text-[24px] leading-[32px] group-hover:text-[#23A6F0] transition-colors">
+                <h3 className="text-[#252B42] font-bold text-[24px] leading-[32px] group-hover:text-[#23A6F0] transition-colors line-clamp-2">
                   {deal.name}
                 </h3>
               </div>
@@ -93,12 +107,16 @@ const DailyDeals = () => {
 
             <div className="flex-1 relative flex items-center justify-center p-4">
               <img
-                src={getImageUrl(deal.images)}
+                src={getImageUrl(deal)}
                 alt={deal.name}
                 className="max-w-full max-h-[85%] object-contain transition-transform duration-500 group-hover:scale-110 drop-shadow-xl"
                 style={{
                   mixBlendMode: "multiply",
                   filter: "contrast(1.05)",
+                }}
+                onError={(e) => {
+                  e.target.src =
+                    "https://via.placeholder.com/300x300?text=Image+Error";
                 }}
               />
             </div>

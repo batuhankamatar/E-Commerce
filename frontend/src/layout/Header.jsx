@@ -4,7 +4,7 @@ import logo from "../assets/Logo.png";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../store/reducers/authReducer";
 import { setUser } from "../store/reducers/clientReducer";
-import { fetchCategories } from "../store/reducers/productReducer";
+import { fetchCategories } from "../store/actions/productActions";
 import axiosInstance from "../api/axiosInstance";
 import Gravatar from "../components/common/Gravatar";
 import {
@@ -52,9 +52,6 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const femaleCategories = categories.filter((c) => c.gender === "k");
-  const maleCategories = categories.filter((c) => c.gender === "e");
-
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -66,8 +63,11 @@ const Header = () => {
   };
 
   const handleCategoryClick = (gender, catTitle, catId) => {
-    const genderSlug = gender === "k" ? "kadin" : "erkek";
-    const categorySlug = catTitle.toLowerCase();
+    const g = gender?.toLowerCase();
+    const genderSlug =
+      g === "k" || g === "female" || g === "kadin" ? "kadin" : "erkek";
+    const categorySlug = catTitle.toLowerCase().replace(/\s+/g, "-");
+
     navigate(`/shop/${genderSlug}/${categorySlug}/${catId}`);
     setIsShopOpen(false);
   };
@@ -228,43 +228,30 @@ const Header = () => {
               {isShopOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </div>
             {isShopOpen && (
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-white border border-gray-100 shadow-2xl rounded-lg p-6 flex gap-12 z-[1001] animate-fadeIn min-w-[350px]">
-                <div className="flex flex-col gap-4">
-                  <h4 className="text-[#252B42] font-bold text-[16px] text-left">
-                    Kadın
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-white border border-gray-100 shadow-2xl rounded-lg p-6 flex gap-12 z-[1001] animate-fadeIn min-w-[220px]">
+                <div className="flex flex-col gap-4 w-full">
+                  <h4 className="text-[#252B42] font-bold text-[16px] text-left border-b pb-1">
+                    Categories
                   </h4>
                   <ul className="flex flex-col gap-2 list-none p-0 m-0">
-                    {femaleCategories.map((cat) => (
-                      <li key={cat.id}>
-                        <button
-                          onClick={() =>
-                            handleCategoryClick("k", cat.title, cat.id)
-                          }
-                          className="hover:text-[#23A6F0] text-[#737373] font-normal whitespace-nowrap text-left w-full bg-transparent border-none cursor-pointer p-0"
-                        >
-                          {cat.title}
-                        </button>
+                    {categories.length > 0 ? (
+                      categories.map((cat) => (
+                        <li key={cat.id}>
+                          <button
+                            onClick={() =>
+                              handleCategoryClick(cat.gender, cat.title, cat.id)
+                            }
+                            className="hover:text-[#23A6F0] text-[#737373] font-normal whitespace-nowrap text-left w-full bg-transparent border-none cursor-pointer p-0 transition-colors"
+                          >
+                            {cat.title}
+                          </button>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="text-xs text-gray-400 italic">
+                        No categories found
                       </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="flex flex-col gap-4">
-                  <h4 className="text-[#252B42] font-bold text-[16px] text-left">
-                    Erkek
-                  </h4>
-                  <ul className="flex flex-col gap-2 list-none p-0 m-0">
-                    {maleCategories.map((cat) => (
-                      <li key={cat.id}>
-                        <button
-                          onClick={() =>
-                            handleCategoryClick("e", cat.title, cat.id)
-                          }
-                          className="hover:text-[#23A6F0] text-[#737373] font-normal whitespace-nowrap text-left w-full bg-transparent border-none cursor-pointer p-0"
-                        >
-                          {cat.title}
-                        </button>
-                      </li>
-                    ))}
+                    )}
                   </ul>
                 </div>
               </div>
@@ -273,7 +260,7 @@ const Header = () => {
 
           <li className="lg:hidden">
             <Link
-              to="/products"
+              to="/shop"
               className="no-underline font-['Montserrat'] text-[#737373] font-[550] text-[30px] leading-[45px] text-center hover:text-[#23A6F0]"
             >
               Product

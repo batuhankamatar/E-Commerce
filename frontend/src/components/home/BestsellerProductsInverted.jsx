@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import axiosInstance from "../../api/axiosInstance";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchProducts } from "../../store/actions/productActions";
 import ProductCard from "../shop/ProductCard";
 
 const BestsellerProductsInverted = () => {
+  const dispatch = useDispatch();
   const categories = useSelector((state) => state.product.categories) || [];
-  const [bestsellers, setBestsellers] = useState([]);
+  const productList = useSelector((state) => state.product.productList) || [];
+
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
   const [activeGender, setActiveGender] = useState("MALE");
 
@@ -14,35 +16,30 @@ const BestsellerProductsInverted = () => {
       const activeCategoryId = categories[activeCategoryIndex]?.id;
       if (!activeCategoryId) return;
 
-      const fetchBestsellers = async () => {
-        try {
-          const res = await axiosInstance.get(
-            `/products?category=${activeCategoryId}&sort=rating:desc&limit=8`,
-          );
-
-          if (res.data && res.data.products) {
-            setBestsellers(res.data.products);
-          }
-        } catch (err) {
-          console.error("Bestseller çekme hatası:", err);
-          setBestsellers([]);
-        }
-      };
-      fetchBestsellers();
+      dispatch(
+        fetchProducts({
+          category: activeCategoryId,
+          sort: "rating_desc",
+          limit: 6,
+          offset: 0,
+        }),
+      );
     }
-  }, [activeCategoryIndex, categories]);
+  }, [activeCategoryIndex, categories, dispatch]);
 
   const activeCategory = categories[activeCategoryIndex];
 
-  const filteredProducts = bestsellers.filter((item) => {
-    const gender = item.gender ? item.gender.toUpperCase() : "UNISEX";
-    if (activeGender === "MALE")
-      return gender === "MALE" || gender === "UNISEX";
-    if (activeGender === "FEMALE")
-      return gender === "FEMALE" || gender === "UNISEX";
-    if (activeGender === "ACCESSORY") return gender === "ACCESSORY";
-    return true;
-  });
+  const filteredProducts = productList
+    .filter((item) => {
+      const gender = item.gender ? item.gender.toUpperCase() : "UNISEX";
+      if (activeGender === "MALE")
+        return gender === "MALE" || gender === "UNISEX";
+      if (activeGender === "FEMALE")
+        return gender === "FEMALE" || gender === "UNISEX";
+      if (activeGender === "ACCESSORY") return gender === "ACCESSORY";
+      return true;
+    })
+    .slice(0, 6);
 
   const getCategoryImageUrl = (img) => {
     if (!img)
@@ -77,7 +74,9 @@ const BestsellerProductsInverted = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent" />
           <div className="absolute top-0 left-0 right-0 flex flex-col gap-[5px] pt-12 pl-12 pr-6 text-white font-bold">
-            <span className="text-[14px]">{activeCategory.title}</span>
+            <span className="text-[14px] uppercase">
+              {activeCategory.title}
+            </span>
             <span className="text-[14px]">{filteredProducts.length} Items</span>
           </div>
         </div>
@@ -105,13 +104,13 @@ const BestsellerProductsInverted = () => {
             <div className="flex gap-[15px]">
               <button
                 onClick={handlePrev}
-                className="w-[49px] h-[49px] rounded-full border border-[#ECECEC] flex items-center justify-center text-[20px]"
+                className="w-[49px] h-[49px] rounded-full border border-[#ECECEC] flex items-center justify-center text-[20px] text-[#737373] hover:bg-[#23A6F0] hover:text-white transition-all"
               >
                 ‹
               </button>
               <button
                 onClick={handleNext}
-                className="w-[49px] h-[49px] rounded-full border border-[#ECECEC] flex items-center justify-center text-[20px]"
+                className="w-[49px] h-[49px] rounded-full border border-[#ECECEC] flex items-center justify-center text-[20px] text-[#737373] hover:bg-[#23A6F0] hover:text-white transition-all"
               >
                 ›
               </button>
@@ -137,7 +136,9 @@ const BestsellerProductsInverted = () => {
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent" />
             <div className="absolute top-0 left-0 right-0 flex flex-col gap-[5px] pt-6 pl-12 text-white font-bold">
-              <span className="text-[14px]">{activeCategory.title}</span>
+              <span className="text-[14px] uppercase">
+                {activeCategory.title}
+              </span>
               <span className="text-[14px]">
                 {filteredProducts.length} Items
               </span>
@@ -191,7 +192,7 @@ const BestsellerProductsInverted = () => {
                 </div>
               ))}
               {filteredProducts.length === 0 && (
-                <div className="col-span-3 text-center py-20 text-gray-400">
+                <div className="col-span-3 text-center py-20 text-gray-400 italic">
                   No items found.
                 </div>
               )}

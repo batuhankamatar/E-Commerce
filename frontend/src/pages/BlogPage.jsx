@@ -9,7 +9,9 @@ const BlogPage = () => {
   useEffect(() => {
     axiosInstance
       .get("/blogs")
-      .then((res) => setBlogs(res.data))
+      .then((res) => {
+        setBlogs(Array.isArray(res.data) ? res.data : []);
+      })
       .catch((err) => console.error("Bloglar çekilemedi:", err))
       .finally(() => setLoading(false));
   }, []);
@@ -17,6 +19,7 @@ const BlogPage = () => {
   if (loading)
     return (
       <div className="flex items-center justify-center min-h-screen font-['Montserrat'] text-[#737373]">
+        <div className="w-12 h-12 border-4 border-[#23A6F0] border-t-transparent rounded-full animate-spin mr-4"></div>
         Loading...
       </div>
     );
@@ -37,9 +40,17 @@ const BlogPage = () => {
           className="grid grid-cols-1 lg:grid-cols-2 w-full justify-items-center"
           style={{ columnGap: "33px", rowGap: "80px" }}
         >
-          {blogs.map((blog) => (
-            <BlogCard key={blog.id} blog={blog} variant="page" />
-          ))}
+          {blogs.length > 0 ? (
+            blogs.map(
+              (blog) =>
+                // blog objesi varsa ve tanımlıysa karta gönder
+                blog && <BlogCard key={blog.id} blog={blog} variant="page" />,
+            )
+          ) : (
+            <div className="col-span-full text-center text-gray-400 italic py-20">
+              No blogs found.
+            </div>
+          )}
         </div>
       </div>
     </section>

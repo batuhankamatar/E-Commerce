@@ -34,7 +34,7 @@ const MostPopularInverted = () => {
     const fetchMostPopular = async () => {
       try {
         const res = await axiosInstance.get(
-          "/products?sort=rating:desc&limit=1",
+          "/products/shop?sort=rating_desc&limit=1",
         );
 
         if (res.data && res.data.products && res.data.products.length > 0) {
@@ -50,7 +50,12 @@ const MostPopularInverted = () => {
   const handleProductClick = (p) => {
     if (!p) return;
 
-    const gender = p.gender === "k" ? "kadin" : "erkek";
+    const gender = p.gender
+      ? p.gender.toLowerCase() === "k" || p.gender.toLowerCase() === "female"
+        ? "kadin"
+        : "erkek"
+      : "unisex";
+
     const categoryName = (p.categoryName || "product")
       .toLowerCase()
       .trim()
@@ -58,7 +63,8 @@ const MostPopularInverted = () => {
       .replaceAll("/", "-");
 
     const categoryId = p.category_id || p.categoryId || 0;
-    const nameSlug = p.name
+
+    const nameSlug = (p.name || "")
       .toLowerCase()
       .trim()
       .replaceAll(" ", "-")
@@ -70,12 +76,22 @@ const MostPopularInverted = () => {
     );
   };
 
-  const getProductImageUrl = (images) => {
-    if (!images) return "https://via.placeholder.com/300x400?text=No+Image";
-    if (Array.isArray(images) && images.length > 0)
-      return images[0].url || images[0];
-    if (typeof images === "string") return images;
-    return "https://via.placeholder.com/300x400?text=No+Image";
+  const getProductImageUrl = (p) => {
+    const imgPath =
+      p.mainImage ||
+      (p.images && p.images.length > 0 ? p.images[0].url || p.images[0] : null);
+
+    if (!imgPath) return "https://via.placeholder.com/300x400?text=No+Image";
+
+    if (typeof imgPath === "string" && imgPath.startsWith("http")) {
+      return imgPath;
+    }
+
+    try {
+      return new URL(`/src/assets/products/${imgPath}`, import.meta.url).href;
+    } catch (e) {
+      return "https://via.placeholder.com/300x400?text=Asset+Not+Found";
+    }
   };
 
   const heroImageUrl =
@@ -112,9 +128,13 @@ const MostPopularInverted = () => {
               >
                 <div className="w-full h-[294px] overflow-hidden">
                   <img
-                    src={getProductImageUrl(product.images)}
+                    src={getProductImageUrl(product)}
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    onError={(e) => {
+                      e.target.src =
+                        "https://via.placeholder.com/300x400?text=Image+Error";
+                    }}
                   />
                 </div>
                 <div className="flex flex-col items-center gap-[10px] py-6 px-4">
@@ -166,9 +186,13 @@ const MostPopularInverted = () => {
                 >
                   <div className="w-full h-[240px] overflow-hidden">
                     <img
-                      src={getProductImageUrl(product.images)}
+                      src={getProductImageUrl(product)}
                       alt={product.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      onError={(e) => {
+                        e.target.src =
+                          "https://via.placeholder.com/300x400?text=Image+Error";
+                      }}
                     />
                   </div>
                   <div className="flex flex-col items-center gap-[10px] py-6 px-4">

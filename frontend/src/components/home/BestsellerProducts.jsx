@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import axiosInstance from "../../api/axiosInstance";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchProducts } from "../../store/actions/productActions";
 import ProductCard from "../shop/ProductCard";
 
 const BestsellerProducts = () => {
+  const dispatch = useDispatch();
+
   const categories = useSelector((state) => state.product.categories) || [];
-  const [bestsellers, setBestsellers] = useState([]);
+  const productList = useSelector((state) => state.product.productList) || [];
+
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
   const [activeGender, setActiveGender] = useState("MALE");
 
@@ -14,36 +17,31 @@ const BestsellerProducts = () => {
       const activeCategoryId = categories[activeCategoryIndex]?.id;
       if (!activeCategoryId) return;
 
-      const fetchBestsellers = async () => {
-        try {
-          const res = await axiosInstance.get(
-            `/products?category=${activeCategoryId}&sort=rating:desc&limit=8`,
-          );
-
-          if (res.data && res.data.products) {
-            setBestsellers(res.data.products);
-          }
-        } catch (err) {
-          console.error("Bestseller çekme hatası:", err);
-          setBestsellers([]);
-        }
-      };
-      fetchBestsellers();
+      dispatch(
+        fetchProducts({
+          category: activeCategoryId,
+          sort: "rating_desc",
+          limit: 6,
+          offset: 0,
+        }),
+      );
     }
-  }, [activeCategoryIndex, categories]);
+  }, [activeCategoryIndex, categories, dispatch]);
 
   const activeCategory = categories[activeCategoryIndex];
 
-  const filteredProducts = bestsellers.filter((item) => {
-    const gender = item.gender ? item.gender.toUpperCase() : "UNISEX";
-    if (activeGender === "MALE")
-      return gender === "MALE" || gender === "UNISEX";
-    if (activeGender === "FEMALE")
-      return gender === "FEMALE" || gender === "UNISEX";
-    if (activeGender === "ACCESSORY")
-      return gender === "ACCESSORY" || item.category_id === 1;
-    return true;
-  });
+  const filteredProducts = productList
+    .filter((item) => {
+      const gender = item.gender ? item.gender.toUpperCase() : "UNISEX";
+      if (activeGender === "MALE")
+        return gender === "MALE" || gender === "UNISEX";
+      if (activeGender === "FEMALE")
+        return gender === "FEMALE" || gender === "UNISEX";
+      if (activeGender === "ACCESSORY")
+        return gender === "ACCESSORY" || item.category_id === 1;
+      return true;
+    })
+    .slice(0, 6);
 
   const getCategoryImageUrl = (img) => {
     if (!img) return "https://via.placeholder.com/400x800?text=No+Image";
@@ -77,7 +75,9 @@ const BestsellerProducts = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent" />
           <div className="absolute top-0 left-0 right-0 flex flex-col gap-[5px] pt-12 pl-12 pr-6 text-white font-bold">
-            <span className="text-[14px]">{activeCategory.title}</span>
+            <span className="text-[14px] uppercase">
+              {activeCategory.title}
+            </span>
             <span className="text-[14px]">{filteredProducts.length} Items</span>
           </div>
         </div>
@@ -97,7 +97,7 @@ const BestsellerProducts = () => {
                 <button
                   key={f.id}
                   onClick={() => setActiveGender(f.id)}
-                  className={`w-[95px] h-[44px] font-bold text-[14px] rounded-[37px] ${activeGender === f.id ? "text-[#23A6F0]" : "text-[#737373]"}`}
+                  className={`w-[95px] h-[44px] font-bold text-[14px] rounded-[37px] transition-colors ${activeGender === f.id ? "text-[#23A6F0]" : "text-[#737373]"}`}
                 >
                   {f.label}
                 </button>
@@ -106,13 +106,13 @@ const BestsellerProducts = () => {
             <div className="flex gap-[15px]">
               <button
                 onClick={handlePrev}
-                className="w-[49px] h-[49px] rounded-full border border-[#ECECEC] text-[20px] text-[#737373]"
+                className="w-[49px] h-[49px] rounded-full border border-[#ECECEC] text-[20px] text-[#737373] hover:bg-[#23A6F0] hover:text-white transition-all"
               >
                 ‹
               </button>
               <button
                 onClick={handleNext}
-                className="w-[49px] h-[49px] rounded-full border border-[#ECECEC] text-[20px] text-[#737373]"
+                className="w-[49px] h-[49px] rounded-full border border-[#ECECEC] text-[20px] text-[#737373] hover:bg-[#23A6F0] hover:text-white transition-all"
               >
                 ›
               </button>
@@ -138,7 +138,7 @@ const BestsellerProducts = () => {
               className="w-full h-full object-cover"
             />
             <div className="absolute top-0 left-0 right-0 flex flex-col gap-[5px] pt-6 pl-12 text-white font-bold">
-              <span>{activeCategory.title}</span>
+              <span className="uppercase">{activeCategory.title}</span>
               <span>{filteredProducts.length} Items</span>
             </div>
           </div>
@@ -158,7 +158,7 @@ const BestsellerProducts = () => {
                     <button
                       key={f.id}
                       onClick={() => setActiveGender(f.id)}
-                      className={`px-[20px] py-[10px] font-bold text-[14px] rounded-[37px] ${activeGender === f.id ? "text-[#23A6F0]" : "text-[#737373]"}`}
+                      className={`px-[20px] py-[10px] font-bold text-[14px] rounded-[37px] transition-colors ${activeGender === f.id ? "text-[#23A6F0]" : "text-[#737373]"}`}
                     >
                       {f.label}
                     </button>
@@ -167,13 +167,13 @@ const BestsellerProducts = () => {
                 <div className="flex items-center gap-[15px]">
                   <button
                     onClick={handlePrev}
-                    className="w-[49px] h-[49px] rounded-full border border-[#ECECEC] text-[20px] text-[#737373]"
+                    className="w-[49px] h-[49px] rounded-full border border-[#ECECEC] text-[20px] text-[#737373] hover:bg-[#23A6F0] hover:text-white transition-all"
                   >
                     ‹
                   </button>
                   <button
                     onClick={handleNext}
-                    className="w-[49px] h-[49px] rounded-full border border-[#ECECEC] text-[20px] text-[#737373]"
+                    className="w-[49px] h-[49px] rounded-full border border-[#ECECEC] text-[20px] text-[#737373] hover:bg-[#23A6F0] hover:text-white transition-all"
                   >
                     ›
                   </button>
@@ -190,8 +190,8 @@ const BestsellerProducts = () => {
                 </div>
               ))}
               {filteredProducts.length === 0 && (
-                <div className="col-span-3 text-center py-20 text-gray-400">
-                  No item to display.
+                <div className="col-span-3 text-center py-20 text-gray-400 italic">
+                  No items found in this category.
                 </div>
               )}
             </div>

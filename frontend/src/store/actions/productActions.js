@@ -1,69 +1,95 @@
 import axiosInstance from "../../api/axiosInstance";
+
 import {
   SET_CATEGORIES,
   SET_PRODUCT_LIST,
   SET_TOTAL,
   SET_FETCH_STATE,
   SET_PRODUCT_DETAIL,
-  FetchStates,
+  SET_DAILY_DEALS,
+  SET_LOADING,
 } from "../reducers/productReducer";
 
-export const setCategories = (categories) => ({
-  type: SET_CATEGORIES,
-  payload: categories,
-});
 export const setProductList = (products) => ({
   type: SET_PRODUCT_LIST,
   payload: products,
 });
 export const setTotal = (total) => ({ type: SET_TOTAL, payload: total });
-export const setFetchState = (fetchState) => ({
+export const setFetchState = (state) => ({
   type: SET_FETCH_STATE,
-  payload: fetchState,
+  payload: state,
 });
-export const setProductDetail = (product) => ({
-  type: SET_PRODUCT_DETAIL,
-  payload: product,
-});
-
-export const fetchCategories = () => (dispatch) => {
-  dispatch(setFetchState(FetchStates.FETCHING));
-  return axiosInstance
-    .get("/categories")
-    .then((res) => dispatch(setCategories(res.data)))
-    .catch(() => dispatch(setFetchState(FetchStates.FAILED)));
-};
 
 export const fetchProducts =
   (params = {}) =>
   (dispatch) => {
-    dispatch(setFetchState(FetchStates.FETCHING));
+    dispatch({ type: SET_LOADING, payload: true });
+    dispatch(setFetchState("FETCHING"));
+
     const queryParams = new URLSearchParams();
-    const limit = params.limit || 25;
-    const offset = params.page ? Number(params.page) * limit : 0;
 
     if (params.category) queryParams.append("category", params.category);
     if (params.filter) queryParams.append("filter", params.filter);
-    if (params.sort) queryParams.append("sort", params.sort);
-    queryParams.append("limit", limit);
-    queryParams.append("offset", offset);
+
+    let sortValue = params.sort || "";
+    if (sortValue.includes(":")) {
+      sortValue = sortValue.replace(":", "_");
+    }
+    if (sortValue) queryParams.append("sort", sortValue);
+
+    queryParams.append("limit", params.limit || 25);
+    queryParams.append("offset", params.offset || 0);
 
     return axiosInstance
       .get(`/products/shop?${queryParams.toString()}`)
       .then((res) => {
-        dispatch(setProductList(res.data.products));
-        dispatch(setTotal(res.data.totalCount));
-        dispatch(setFetchState(FetchStates.FETCHED));
+        dispatch(setProductList(res.data.products || []));
+        dispatch(setTotal(res.data.totalCount || 0));
+        dispatch(setFetchState("FETCHED"));
       })
-      .catch(() => dispatch(setFetchState(FetchStates.FAILED)));
+      .catch((err) => {
+        console.error("Fetch Products Error:", err);
+        dispatch(setFetchState("FAILED"));
+      })
+      .finally(() => {
+        dispatch({ type: SET_LOADING, payload: false });
+      });
   };
 
-export const fetchProductDetail = (productId) => (dispatch) => {
-  dispatch(setFetchState(FetchStates.FETCHING));
+export const fetchCategories = () => (dispatch) => {
+  dispatch(setFetchState("FETCHING"));
   return axiosInstance
-    .get(`/products/${productId}`)
-    .then((res) => dispatch(setProductDetail(res.data)))
-    .catch(() => dispatch(setFetchState(FetchStates.FAILED)));
+    .get("/categories")
+    .then((res) => {
+      dispatch({ type: SET_CATEGORIES, payload: res.data });
+      dispatch(setFetchState("FETCHED"));
+    })
+    .catch(() => dispatch(setFetchState("FAILED")));
 };
 
-export const fetchDailyDeals = () => axiosInstance.get("/products/daily-deals");
+export const fetchDailyDeals = () => async (dispatch) => {
+  dispatch({ type: "product/SET_LOADING", payload: true });
+  try {
+    const response = await axiosInstance.get("/products/daily-deals");
+    dispatch({ type: "product/SET_DAILY_DEALS", payload: response.data });
+  } catch (error) {
+    console.error("Daily deals çekilemedi:", error);
+  } finally {
+    dispatch({ type: "product/SET_LOADING", payload: false });
+  }
+};
+
+export const fetchProductDetail = (productId) => (dispatch) => {
+  dispatch({ type: "product/SET_LOADING", payload: true });
+  return axiosInstance
+    .get(`/products/${productId}`)
+    .then((res) => {
+      dispatch({ type: "product/SET_PRODUCT_DETAIL", payload: res.data });
+    })
+    .catch((err) => {
+      console.error("Ürün detayı çekilemedi:", err);
+    })
+    .finally(() => {
+      dispatch({ type: "product/SET_LOADING", payload: false });
+    });
+};

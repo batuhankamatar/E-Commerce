@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
 import axiosInstance from "../../api/axiosInstance";
 import ProductCard from "../shop/ProductCard";
 
@@ -12,11 +11,11 @@ const BestsellerSimple = ({ limit = 4 }) => {
     const fetchAll = async () => {
       try {
         const res = await axiosInstance.get(
-          "/products?sort=rating:desc&limit=20",
+          "/products/shop?sort=rating_desc&limit=20",
         );
 
         if (res.data && res.data.products) {
-          const shuffled = res.data.products
+          const shuffled = [...res.data.products]
             .sort(() => 0.5 - Math.random())
             .slice(0, limit);
           setBestsellers(shuffled);
@@ -41,6 +40,11 @@ const BestsellerSimple = ({ limit = 4 }) => {
           {bestsellers.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
+          {bestsellers.length === 0 && (
+            <div className="col-span-full text-center py-10 text-gray-400 italic">
+              No bestseller products found.
+            </div>
+          )}
         </div>
       </div>
     </section>
