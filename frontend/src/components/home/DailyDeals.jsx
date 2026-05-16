@@ -15,13 +15,6 @@ const DailyDeals = () => {
   const mainDeals = dailyDeals.slice(0, 3);
 
   const handleDealClick = (deal) => {
-    const gender = deal.gender
-      ? deal.gender.toLowerCase() === "k" ||
-        deal.gender.toLowerCase() === "female"
-        ? "kadin"
-        : "erkek"
-      : "unisex";
-
     const categoryName = (deal.categoryName || "product")
       .toLowerCase()
       .trim()
@@ -37,9 +30,7 @@ const DailyDeals = () => {
       .replaceAll("/", "-")
       .replace(/[^a-z0-9-]/g, "");
 
-    navigate(
-      `/shop/${gender}/${categoryName}/${categoryId}/${nameSlug}/${deal.id}`,
-    );
+    navigate(`/shop/${categoryName}/${categoryId}/${nameSlug}/${deal.id}`);
   };
 
   if (loading && dailyDeals.length === 0) {

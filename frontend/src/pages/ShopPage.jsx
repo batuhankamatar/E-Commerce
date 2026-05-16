@@ -12,7 +12,7 @@ import Pagination from "../components/shop/Pagination";
 import Clients from "../components/home/Clients";
 
 const ShopPage = () => {
-  const { gender, categoryName, categoryId } = useParams();
+  const { categoryName, categoryId } = useParams();
   const dispatch = useDispatch();
 
   const { productList, total, loading, filter, offset } = useSelector(
@@ -45,7 +45,7 @@ const ShopPage = () => {
 
   return (
     <div className="flex flex-col min-h-screen font-['Montserrat']">
-      <ShopBreadcrumb gender={gender} categoryName={categoryName} />
+      <ShopBreadcrumb categoryName={categoryName} />
       <CategoryBanner />
 
       <FilterBar

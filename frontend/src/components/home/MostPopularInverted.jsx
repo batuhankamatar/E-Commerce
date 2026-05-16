@@ -50,12 +50,6 @@ const MostPopularInverted = () => {
   const handleProductClick = (p) => {
     if (!p) return;
 
-    const gender = p.gender
-      ? p.gender.toLowerCase() === "k" || p.gender.toLowerCase() === "female"
-        ? "kadin"
-        : "erkek"
-      : "unisex";
-
     const categoryName = (p.categoryName || "product")
       .toLowerCase()
       .trim()
@@ -71,9 +65,7 @@ const MostPopularInverted = () => {
       .replaceAll("/", "-")
       .replace(/[^a-z0-9-]/g, "");
 
-    navigate(
-      `/shop/${gender}/${categoryName}/${categoryId}/${nameSlug}/${p.id}`,
-    );
+    navigate(`/shop/${categoryName}/${categoryId}/${nameSlug}/${p.id}`);
   };
 
   const getProductImageUrl = (p) => {

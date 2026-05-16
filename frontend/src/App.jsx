@@ -18,6 +18,8 @@ import ProductPage from "./pages/ProductPage";
 import ContactPage from "./pages/ContactPage";
 import TeamPage from "./pages/TeamPage";
 import AboutPage from "./pages/AboutPage";
+import FavoritesPage from "./pages/FavoritesPage";
+import ShoppingCartPage from "./pages/ShoppingCartPage";
 
 function AppContent() {
   const dispatch = useDispatch();
@@ -44,16 +46,19 @@ function AppContent() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/shop" element={<ShopPage />} />
+
           <Route
-            path="/shop/:gender/:categoryName/:categoryId"
+            path="/shop/:categoryName/:categoryId"
             element={<ShopPage />}
           />
 
           <Route
-            path="/shop/:gender/:categoryName/:categoryId/:productNameSlug/:id"
+            path="/shop/:categoryName/:categoryId/:productNameSlug/:id"
             element={<ProductPage />}
           />
 
+          <Route path="/favorites" element={<FavoritesPage />} />
+          <Route path="/cart" element={<ShoppingCartPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/team" element={<TeamPage />} />
           <Route path="/about" element={<AboutPage />} />

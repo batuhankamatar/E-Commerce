@@ -5,13 +5,6 @@ const ProductCard = ({ product }) => {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
-    const gender = product.gender
-      ? product.gender.toLowerCase() === "k" ||
-        product.gender.toLowerCase() === "female"
-        ? "kadin"
-        : "erkek"
-      : "unisex";
-
     const categoryName = (product.categoryName || "product")
       .toLowerCase()
       .trim()
@@ -26,9 +19,7 @@ const ProductCard = ({ product }) => {
       .replaceAll("/", "-")
       .replace(/[^a-z0-9-]/g, "");
 
-    navigate(
-      `/shop/${gender}/${categoryName}/${categoryId}/${nameSlug}/${product.id}`,
-    );
+    navigate(`/shop/${categoryName}/${categoryId}/${nameSlug}/${product.id}`);
   };
 
   const getImageUrl = (p) => {

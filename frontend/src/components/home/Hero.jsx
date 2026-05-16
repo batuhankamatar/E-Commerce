@@ -66,9 +66,12 @@ const Hero = () => {
                     </div>
 
                     <button
-                      onClick={() =>
-                        navigate(`/shop/${category.code.toLowerCase()}`)
-                      }
+                      onClick={() => {
+                        const categorySlug = category.title
+                          .toLowerCase()
+                          .replace(/\s+/g, "-");
+                        navigate(`/shop/${categorySlug}/${category.id}`);
+                      }}
                       className="w-[180px] h-[62px] bg-[#23A6F0] rounded-[5px] flex items-center justify-center hover:bg-[#1a7bb3] transition-all shadow-lg active:scale-95"
                     >
                       <span className="font-['Montserrat'] font-bold text-[24px] leading-[32px] tracking-[0.1px] text-white">
