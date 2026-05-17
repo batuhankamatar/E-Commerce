@@ -53,7 +53,6 @@ const ShoppingCartPage = () => {
   const currentShippingPrice = isShippingFree ? 0 : shippingStandardPrice;
   const fixedDiscount = totalSelectedPrice > 0 ? 10.0 : 0;
 
-  // Genel Toplam
   const grandTotal = totalSelectedPrice + currentShippingPrice - fixedDiscount;
 
   return (
@@ -349,6 +348,7 @@ const ShoppingCartPage = () => {
                 </div>
 
                 <button
+                  onClick={() => navigate("/checkout")}
                   disabled={totalSelectedCount === 0}
                   className="w-full h-12 bg-[#23A6F0] hover:bg-[#1a7bb3] disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold text-sm rounded-[5px] border-none cursor-pointer transition-all mt-5 shadow-md active:scale-95 uppercase tracking-wider"
                 >

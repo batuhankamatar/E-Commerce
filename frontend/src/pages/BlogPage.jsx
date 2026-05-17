@@ -43,7 +43,6 @@ const BlogPage = () => {
           {blogs.length > 0 ? (
             blogs.map(
               (blog) =>
-                // blog objesi varsa ve tanımlıysa karta gönder
                 blog && <BlogCard key={blog.id} blog={blog} variant="page" />,
             )
           ) : (

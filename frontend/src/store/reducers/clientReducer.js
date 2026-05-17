@@ -1,5 +1,5 @@
 import axiosInstance from "../../api/axiosInstance";
-import { loginSuccess } from "./authReducer";
+import { loginSuccess, SET_VERIFYING } from "./authReducer";
 
 const initialState = {
   user: {},
@@ -48,7 +48,11 @@ export const loginUser = (credentials, rememberMe) => async (dispatch) => {
 
 export const verifyToken = () => async (dispatch) => {
   const token = localStorage.getItem("token");
-  if (!token) return;
+
+  if (!token) {
+    dispatch({ type: SET_VERIFYING, payload: false });
+    return;
+  }
 
   try {
     const response = await axiosInstance.get("/auth/verify");
@@ -62,6 +66,7 @@ export const verifyToken = () => async (dispatch) => {
     console.error("Token doğrulama hatası:", error);
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    dispatch({ type: SET_VERIFYING, payload: false });
   }
 };
 
@@ -70,7 +75,7 @@ export const fetchRoles = () => async (dispatch, getState) => {
   if (roles.length > 0) return;
   try {
     const response = await axiosInstance.get("/roles");
-    dispatch(setRoles(res.data));
+    dispatch(setRoles(response.data));
   } catch (error) {
     console.error("Roles çekilemedi:", error);
   }

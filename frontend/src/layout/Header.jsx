@@ -170,10 +170,16 @@ const Header = () => {
 
       <div className="flex items-center h-[58px] mt-[23px] lg:mt-[16px] lg:order-3">
         <div className="nav-actions flex items-center w-full max-w-[128px] lg:max-w-fit h-[24px] gap-[32px] lg:gap-[40px] mr-[40px] lg:mr-[100px] order-2">
-          <div className="desktop-auth hidden lg:flex items-center relative">
+          <div
+            className="desktop-auth hidden lg:flex items-center relative"
+            ref={authDropdownRef}
+          >
             {isLoggedIn ? (
-              <div className="flex items-center gap-8 min-w-max">
-                <div className="flex items-center gap-3 text-[#23A6F0]">
+              <div className="relative">
+                <button
+                  onClick={() => setIsAuthOpen(!isAuthOpen)}
+                  className="flex items-center gap-2 text-[#23A6F0] bg-transparent border-none cursor-pointer p-0 font-bold text-sm select-none"
+                >
                   <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-[#23A6F0] shadow-sm">
                     <Gravatar
                       email={user?.email || ""}
@@ -181,19 +187,34 @@ const Header = () => {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <span className="font-bold text-sm whitespace-nowrap">
-                    {user?.name}
-                  </span>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="text-[#737373] font-bold text-sm hover:text-red-500 transition-all border-l-2 border-gray-100 pl-8 h-6 flex items-center bg-transparent border-none cursor-pointer"
-                >
-                  Logout
+                  <span className="whitespace-nowrap">{user?.name}</span>
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform ${isAuthOpen ? "rotate-180" : ""}`}
+                  />
                 </button>
+
+                {isAuthOpen && (
+                  <div className="absolute top-full right-0 mt-3 bg-white border border-gray-100 shadow-2xl rounded-lg py-2 z-[1002] min-w-[180px] animate-fadeIn font-['Montserrat']">
+                    <Link
+                      to="/orders"
+                      onClick={() => setIsAuthOpen(false)}
+                      className="block px-5 py-2.5 text-sm text-[#737373] hover:bg-[#F9F9F9] hover:text-[#23A6F0] font-bold no-underline transition-colors"
+                    >
+                      Siparişlerim
+                    </Link>
+                    <div className="border-t border-gray-50 my-1"></div>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-5 py-2.5 text-sm text-red-500 hover:bg-red-50/50 font-bold transition-all bg-transparent border-none cursor-pointer font-['Montserrat']"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="relative" ref={authDropdownRef}>
+              <div className="relative">
                 <button
                   onClick={() => setIsAuthOpen(!isAuthOpen)}
                   className="text-[#23A6F0] font-bold text-sm flex items-center gap-2 whitespace-nowrap bg-transparent border-none cursor-pointer p-0"
@@ -461,7 +482,7 @@ const Header = () => {
             {isMenuOpen && (
               <div className="absolute top-full right-0 mt-4 bg-white border border-gray-100 shadow-xl rounded-lg py-3 min-w-[180px] z-[2001] animate-fadeIn">
                 {isLoggedIn ? (
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-1 font-['Montserrat']">
                     <div className="px-4 py-2 flex items-center gap-3 border-b border-gray-50 mb-1">
                       <Gravatar
                         email={user?.email || ""}
@@ -472,19 +493,27 @@ const Header = () => {
                         {user?.name}
                       </span>
                     </div>
+                    <Link
+                      to="/orders"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="px-4 py-2 text-sm text-[#737373] hover:text-[#23A6F0] font-bold no-underline block transition-colors"
+                    >
+                      Siparişlerim
+                    </Link>
                     <button
                       onClick={() => {
                         navigate("/favorites");
                         setIsMenuOpen(false);
                       }}
-                      className="px-4 py-2 text-sm text-[#737373] hover:text-[#23A6F0] flex items-center gap-2 bg-transparent border-none w-full text-left cursor-pointer"
+                      className="px-4 py-2 text-sm text-[#737373] hover:text-[#23A6F0] flex items-center gap-2 bg-transparent border-none w-full text-left cursor-pointer font-bold font-['Montserrat']"
                     >
                       <Heart size={14} /> Liked Products ({favoriteItems.length}
                       )
                     </button>
+                    <div className="border-t border-gray-50 my-1"></div>
                     <button
                       onClick={handleLogout}
-                      className="px-4 py-2 text-sm text-red-500 font-bold bg-transparent border-none w-full text-left cursor-pointer"
+                      className="px-4 py-2 text-sm text-red-500 font-bold bg-transparent border-none w-full text-left cursor-pointer font-['Montserrat']"
                     >
                       Logout
                     </button>

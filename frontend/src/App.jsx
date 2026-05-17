@@ -20,6 +20,9 @@ import TeamPage from "./pages/TeamPage";
 import AboutPage from "./pages/AboutPage";
 import FavoritesPage from "./pages/FavoritesPage";
 import ShoppingCartPage from "./pages/ShoppingCartPage";
+import CreateOrderPage from "./pages/CreateOrderPage";
+import ProtectedRoute from "./components/common/ProtectedRoute";
+import PreviousOrdersPage from "./pages/PreviousOrdersPage";
 
 function AppContent() {
   const dispatch = useDispatch();
@@ -32,7 +35,8 @@ function AppContent() {
   const isTopBarPage =
     location.pathname.startsWith("/shop") ||
     location.pathname.startsWith("/product") ||
-    location.pathname.startsWith("/contact");
+    location.pathname.startsWith("/contact") ||
+    location.pathname.startsWith("/checkout");
 
   return (
     <div className="App flex flex-col min-h-screen">
@@ -62,6 +66,24 @@ function AppContent() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/team" element={<TeamPage />} />
           <Route path="/about" element={<AboutPage />} />
+
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute>
+                <CreateOrderPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <PreviousOrdersPage />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </PageContent>
       <Footer />

@@ -28,10 +28,8 @@ const SignupForm = () => {
     selectedRole?.authority === "ROLE_STORE" ||
     selectedRole?.name?.toLowerCase().includes("store");
 
-  // Rol isimlerini güzelleştiren yardımcı fonksiyon
   const formatRoleName = (role) => {
     const rawName = role.authority || role.name || "";
-    // ROLE_ kısmını at, hepsini küçült, sadece ilk harfi büyüt
     return rawName
       .replace("ROLE_", "")
       .toLowerCase()

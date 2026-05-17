@@ -8,7 +8,6 @@ const testimonialUrl = new URL(
 const AboutCTA = () => (
   <section className="font-['Montserrat'] w-full overflow-hidden">
     <div className="flex flex-col lg:flex-row lg:h-[636px]">
-      {/* Sol — mavi kısım: %59 */}
       <div
         className="hidden lg:flex items-center w-full lg:w-[59%] flex-shrink-0"
         style={{ backgroundColor: "#2A7CC7" }}
@@ -30,7 +29,6 @@ const AboutCTA = () => (
         </div>
       </div>
 
-      {/* Sağ — görsel: %41 */}
       <div className="hidden lg:block lg:w-[41%] flex-shrink-0 overflow-hidden">
         <img
           src={testimonialUrl}
@@ -39,7 +37,6 @@ const AboutCTA = () => (
         />
       </div>
 
-      {/* Mobil */}
       <div
         className="lg:hidden flex items-center justify-center py-[60px] px-8 min-h-[520px]"
         style={{ backgroundColor: "#2A7CC7" }}
