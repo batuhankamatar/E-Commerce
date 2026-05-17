@@ -2,13 +2,17 @@ spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/v
 spring.datasource.username=${SPRING_DATASOURCE_USERNAME:postgres}
 spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:sifreniz}
 
-spring.jpa.hibernate.ddl-auto=update
+spring.jpa.hibernate.ddl-auto=none
 spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.format_sql=true
 spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.default_schema=ecommerce_schema
+spring.jpa.open-in-view=false
 
 server.servlet.context-path=/api/v1
+server.port=${PORT:8080}
 
 logging.level.org.springframework.security=DEBUG
 
-spring.jpa.properties.hibernate.default_schema=ecommerce_schema
+spring.datasource.hikari.initializationFailTimeout=60000
+spring.datasource.hikari.connectionTimeout=30000

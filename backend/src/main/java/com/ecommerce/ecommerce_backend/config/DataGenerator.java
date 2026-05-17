@@ -5,9 +5,7 @@ import com.ecommerce.ecommerce_backend.entity.Gender;
 import com.ecommerce.ecommerce_backend.repository.CategoryRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Configuration;
 
-@Configuration
 @AllArgsConstructor
 public class DataGenerator implements CommandLineRunner {
 
