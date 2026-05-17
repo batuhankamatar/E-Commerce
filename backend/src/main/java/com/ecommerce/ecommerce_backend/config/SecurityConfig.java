@@ -83,7 +83,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/login", "/auth/register").permitAll()
-                        .requestMatchers("/roles/**").permitAll() // T11: Signup için şart
+                        .requestMatchers("/roles/**").permitAll()
+                        .requestMatchers("/categories/**").permitAll()
+                        .requestMatchers("/products/**").permitAll()
+                        .requestMatchers("/blogs/**").permitAll()
                         .requestMatchers("/auth/verify").authenticated()
                         .anyRequest().permitAll()
                 )
