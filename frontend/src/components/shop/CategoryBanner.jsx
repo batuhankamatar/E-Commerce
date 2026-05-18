@@ -16,10 +16,8 @@ const CategoryBanner = () => {
   };
 
   const handleCategoryClick = (cat) => {
-    const gender =
-      cat.gender === "k" || cat.gender === "WOMEN" ? "kadin" : "erkek";
     const categoryName = cat.title.toLowerCase().replaceAll(" ", "-");
-    navigate(`/shop/${gender}/${categoryName}/${cat.id}`);
+    navigate(`/shop/${categoryName}/${cat.id}`);
   };
 
   return (
