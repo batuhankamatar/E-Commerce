@@ -10,6 +10,7 @@ import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -53,11 +54,13 @@ public class SecurityConfig {
     }
 
     @Bean
+    @Lazy
     public JwtDecoder jwtDecoder() {
         return NimbusJwtDecoder.withPublicKey(keys.getPublicKey()).build();
     }
 
     @Bean
+    @Lazy
     public JwtEncoder jwtEncoder() {
         JWK jwk = new RSAKey.Builder(keys.getPublicKey()).privateKey(keys.getPrivateKey()).build();
         JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
@@ -65,6 +68,7 @@ public class SecurityConfig {
     }
 
     @Bean
+    @Lazy
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
         jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName("roles");
@@ -87,6 +91,7 @@ public class SecurityConfig {
                         .requestMatchers("/categories/**").permitAll()
                         .requestMatchers("/products/**").permitAll()
                         .requestMatchers("/blogs/**").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/auth/verify").authenticated()
                         .anyRequest().permitAll()
                 )
